@@ -1,0 +1,8 @@
+{
+  "name": "Menu.lk",
+  "app_id": "92e27653",
+  "type": "ionic-angular",
+  "integrations": {
+    "cordova": {}
+  }
+}
