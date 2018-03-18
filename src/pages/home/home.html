@@ -1,14 +1,54 @@
 <ion-header>
-  <ion-navbar>
-    <ion-title>
-      Ionic Blank
-    </ion-title>
-  </ion-navbar>
+  <app-header></app-header>
 </ion-header>
 
-<ion-content padding>
-  The world is your oyster.
-  <p>
-    If you get lost, the <a href="http://ionicframework.com/docs/v2">docs</a> will be your guide.
-  </p>
+
+<ion-content (ionScrollEnd)="scrollHandler()" (ionScroll)="scrollHandler()" padding>
+  <ion-list>
+  <ion-card #target *ngFor="let shop of resultSet; let i=index" (tap)="onSelect($event, shop)">
+    <!-- <div #imgContainer class="js-image-container-{{i}} image-container">
+      <div class="mock-image-container">
+        <div class="mock">
+            <svg fill="rgba(125, 132, 180, 0.35)" viewBox="0 0 24 24" width="100%" xmlns="http://www.w3.org/2000/svg">
+              <path d="M0 0h24v24H0z" fill="none"/>
+              <path d="M23 18V6c0-1.1-.9-2-2-2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2zM8.5 12.5l2.5 3.01L14.5 11l4.5 6H5l3.5-4.5z"/>
+            </svg> 
+          <ion-icon name="images"></ion-icon>
+        </div>
+      </div>
+      
+    </div>-->
+    <img-loader [height]="172" [target]="target"></img-loader>
+    <ion-card-content>
+      <ion-row>
+        <ion-col no-padding>
+          <ion-card-title no-padding>
+            <span class="title"><b>{{shop.name}}</b></span>
+          </ion-card-title>
+        </ion-col>
+        <ion-col col-5 text-right>
+          <ion-note>
+            <ion-icon name="timer"></ion-icon>
+            <span>under {{shop.timing}} min</span>
+          </ion-note>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col no-padding>
+          <ion-note>
+              <span>{{shop.category}}</span>
+              <ion-icon name="bulb"></ion-icon>
+              <span>{{shop.takeaway ? 'takeaway' : ''}}</span>
+          </ion-note>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col>
+            <ion-icon name="star"></ion-icon>
+            <span>{{shop.star_rate}}</span>
+        </ion-col>
+      </ion-row>
+    </ion-card-content>
+  </ion-card>
+</ion-list>
 </ion-content>

@@ -1,0 +1,43 @@
+<ion-header #header>
+  <app-header></app-header>
+</ion-header>
+<ion-content>
+    <div class="image-holder" [style.background-image]="backgroundImage"></div>
+    <div class="item-container">
+      <div class="item-header">
+        <h2 text-center>Cappuccino</h2>
+      </div>
+      <p padding-horizontal><ion-note>Prepared with double expresso and steamed milk foam.</ion-note></p>
+      <div class="item-special"><span padding text-uppercase>special instructions</span></div>
+      <div class="item-ctrls" padding>
+        
+        <div class="input-field">
+          <ion-icon name="create"></ion-icon>
+          <input id="userNotes" #input
+              class="user-input"
+              type="text" 
+              [(ngModel)]="userNotes"
+              name="notes" 
+              [maxlength]="70"
+              (focus)="toggleActive($event)"
+              (blur)="toggleActive($event)"
+              ngModel>
+          <label class="user-input-label" for="userNotes">Add a note (extra cheese, no onions, ect.)</label>
+        </div>
+        <div class="spec-notes"><span>&nbsp;</span><span *ngIf="userNotes" class="user-notes"><ion-note>Your special notes: {{userNotes}}</ion-note></span></div>
+      
+        <div class="btn-group">
+          <div class="btn-wrapper">
+            <button ion-button (tap)="onDec()">-</button>
+            <p class="btn-group-counter">{{itemCount}}</p>
+            <button ion-button (tap)="onInc()">+</button>
+          </div>
+        </div>
+
+        <div class="add-to-cart">
+            <button ion-button color="secondary" round icon-left>Add to Cart<span>&nbsp;</span><ion-icon name="cart"></ion-icon></button>
+        </div>
+
+      </div>
+    </div>
+</ion-content>

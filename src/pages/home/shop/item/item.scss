@@ -1,0 +1,148 @@
+page-item {
+  $shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
+  .scroll-content {
+    transition: .3s;
+  }
+  .item-header {
+    font-weight: bold;
+    h2 {
+      margin-top: 1rem;
+    }
+  }
+  @include sub-page-layout($selector-name: item);
+  .image-holder {
+    position: relative;
+    top: 0;
+  }
+  .item-container {
+    margin-top: 0;
+  }
+  .item-special {
+    background-color: #c5c5c5;
+  }
+  .input-field {
+    font-size: 2rem;
+    position: relative;
+    margin-top: 2rem;
+    ion-icon {
+      transition: all 0.3s;
+      color: #9e9e9e;
+    }
+    .user-input {
+      background-color: transparent;
+      border: none;
+      border-bottom: 1px solid #9e9e9e;
+      border-radius: 0;
+      outline: none;
+      height: 3rem;
+      width: 90%;
+      margin: 0 0 20px 0;
+      padding: 0;
+      box-shadow: none;
+      box-sizing: content-box;
+      transition: all 0.3s;
+    }
+    .user-input-label {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+      display: inline-block;
+      width: 90%;
+      color: #9e9e9e;
+      position: absolute;
+      top: -10px;
+      left: 23px;
+      height: 100%;
+      transition: all .2s ease-out;
+      transform-origin: 0% 100%;
+      transform: translateY(12px);
+    }
+    &.active, &.dirty {
+      .user-input-label {
+        color: map-get($colors, primary);
+        transform: translateY(-14px) scale(.8);
+        transform-origin: 0 0;
+        width: 120%;
+      }
+      .user-input {
+        border-bottom: 1px solid map-get($colors, primary);
+      }
+      ion-icon {
+        color: map-get($colors, primary);
+      }
+    }
+    &.dirty {
+      .user-input-label, ion-icon {
+        color: map-get($colors, secondary);
+      }
+      .user-input {
+        border-bottom: 1px solid map-get($colors, secondary);
+      }
+    }
+    &::after {
+      content: '';
+      display: block;
+      width: 90%;
+      height: 1px;
+      position: absolute;
+      background-color: #9e9e9e;
+      top: 30px;
+      left: 23px;
+      transition: all 0.3s;
+    }
+    &.active::after, &.dirty::after {
+      box-shadow: $shadow;
+      background-color: map-get($colors, primary);
+    }
+    &.dirty::after {
+      background-color: map-get($colors, secondary);
+    }
+  }
+  .btn-group {
+    //margin-top: 15px;
+    .btn-wrapper {
+      display: flex;
+      justify-content: space-between;
+      background-color: map-get($colors, primary);
+      width: 140px;
+      box-shadow: $shadow;
+      margin: auto;
+      font-weight: bold;
+      
+      button {
+        width: 45px;
+        box-shadow: none;
+      }
+      .btn-group-counter {
+        color: #fff;
+      }
+    }
+  }
+  .spec-notes {
+    position: relative;
+    bottom: 10px;
+    height: 68px;
+    .user-notes {
+      font-style: italic;
+      animation: appear 1s;
+    }
+  }
+  .add-to-cart {
+    margin-top: 15px;
+    display: flex;
+    justify-content: center;
+    button {
+      width: 70%;
+      height: 50px;
+      font-size: 2rem;
+    }
+  }
+}
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

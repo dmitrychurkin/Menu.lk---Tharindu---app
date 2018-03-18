@@ -86,3 +86,114 @@ $colors: (
 
 @import "roboto";
 @import "noto-sans";
+
+$toolbar-background: map-get($colors, primary);
+
+@mixin image-loader($font-size, $height) {
+  $font-transparent: rgba(0, 0, 0, 0);
+  $font-visible: rgba(125, 132, 180, 0.35);
+
+  .image-container {
+    overflow: hidden;
+    position: relative;
+    transition: 1s;
+    @if $height {
+      height: $height;
+    }
+    &.font-hidden {
+      color: $font-transparent;
+    }
+
+    color: $font-visible;
+
+    .mock-image-container {
+      width: 100%;
+      position: absolute;
+      top: 7%;
+      .mock {
+        @media all and (min-width: 1201px) {
+          width: 200px;
+        }
+        @media all and (max-width: 1200px) {
+          width: 17%;
+        }
+        @media all and (max-width: 900px) {
+          width: 24%
+        }
+        @media all and (max-width: 700px) {
+          width: 31%;
+        }
+        @media all and (max-width: 500px) {
+          width: 45%;
+        }
+       
+        margin: auto;
+        font-size: $font-size;
+      }
+    }
+    .image {
+      width: 100%;
+      height: 100%;
+      transition: inherit;
+      opacity: 0;
+    }
+
+    &.error {
+      color: $font-visible;
+    }
+    
+    &.ready {
+      color: $font-transparent;
+      .image {
+        opacity: 1;
+      }
+    }
+  }
+  
+}
+
+@mixin sub-page-layout($selector-name: 'list') {
+  .image-holder {
+    background-size: cover;
+    position: fixed;
+    z-index: -1;
+    top: calc(56px + 0px);
+    width: 100%;
+    height: 30%;
+    @media screen and (orientation: landscape) {
+      height: 53%;
+    }
+  }
+
+  .#{$selector-name}-container {
+    @media screen and (orientation: landscape) {
+      margin-top: 30%;
+    }
+    margin-top: 50%;
+    width: 100%;
+    background-color: #fff;
+    padding-top: 1px;
+    overflow: hidden;
+
+    @content;
+
+  }
+}
+
+@mixin ion-img {
+  ion-img {
+    width: 100%;
+    height: 17rem;
+    
+    &.img-unloaded img, &.img-loaded img {
+      display: block;
+      transition: .5s;
+    }
+    &.img-unloaded img {
+      opacity: 0;
+    }
+    &.img-loaded img {
+      opacity: 1;
+    }
+  }
+}
