@@ -1,11 +1,17 @@
 <ion-header>
   <app-header></app-header>
+  <ion-toolbar no-border-top>
+    <ion-segment (ngModelChange)="onIonSegmentSelect($event)" [ngModel]="pageConfig.fireConfig.scope">
+      <ion-segment-button [disabled]="pageConfig.fireConfig.scope === 'catering' && ionSegmentActivated" value="restaurants">restaurants</ion-segment-button>
+      <ion-segment-button [disabled]="pageConfig.fireConfig.scope === 'restaurants' && ionSegmentActivated" value="catering">catering menus</ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
 </ion-header>
 
 
 <ion-content (ionScrollEnd)="scrollHandler()" (ionScroll)="scrollHandler()" padding>
   <ion-list>
-  <ion-card #target *ngFor="let shop of resultSet; let i=index" (tap)="onSelect($event, shop)">
+  <ion-card #target *ngFor="let Entity of PageDataStore.get(pageConfig.fireConfig.scope)?.items; let i=index" (tap)="onSelect(Entity)">
     <!-- <div #imgContainer class="js-image-container-{{i}} image-container">
       <div class="mock-image-container">
         <div class="mock">
@@ -18,37 +24,40 @@
       </div>
       
     </div>-->
-    <img-loader [height]="172" [target]="target"></img-loader>
+    <img-loader [id]="Entity._id" [src]="Entity.imageURL" [height]="172" [target]="target"></img-loader>
     <ion-card-content>
       <ion-row>
         <ion-col no-padding>
           <ion-card-title no-padding>
-            <span class="title"><b>{{shop.name}}</b></span>
+            <span class="title"><b>{{Entity.name}}</b></span>
           </ion-card-title>
         </ion-col>
         <ion-col col-5 text-right>
           <ion-note>
             <ion-icon name="timer"></ion-icon>
-            <span>under {{shop.timing}} min</span>
+            <span>under {{Entity.cookingDuration}} min</span>
           </ion-note>
         </ion-col>
       </ion-row>
       <ion-row>
         <ion-col no-padding>
           <ion-note>
-              <span>{{shop.category}}</span>
+              <span>{{Entity.category}}</span>
               <ion-icon name="bulb"></ion-icon>
-              <span>{{shop.takeaway ? 'takeaway' : ''}}</span>
+              <span>{{Entity.takeaway ? 'takeaway' : 'not takeaway'}}</span>
           </ion-note>
         </ion-col>
       </ion-row>
       <ion-row>
         <ion-col>
             <ion-icon name="star"></ion-icon>
-            <span>{{shop.star_rate}}</span>
+            <span>{{Entity.rating}}</span>
         </ion-col>
       </ion-row>
     </ion-card-content>
   </ion-card>
 </ion-list>
+<ion-infinite-scroll (ionInfinite)="loadFromInfinityScroll($event)">
+  <ion-infinite-scroll-content loadingText="Loading more restorants..."></ion-infinite-scroll-content>
+</ion-infinite-scroll>
 </ion-content>

@@ -7,38 +7,50 @@
   <div class="list-container" [style.height.px]="listContHeight">
       <div class="list-header">
           <h2>{{navParams.get('name')}}</h2>
-          <div margin-vertical>
+          <div>
             <ion-note>
               <ion-icon name="star"></ion-icon>
-              {{navParams.get('star_rate')}} | {{navParams.get('category')}}
+              {{navParams.get('rating')}} | {{navParams.get('category')}}
               <ion-icon name="bulb"></ion-icon>
-              {{navParams.get('takeaway') ? 'takeaway' : ''}}
+              {{navParams.get('takeaway') ? 'Takeaway' : 'Not takeaway'}}
             </ion-note>
           </div>
-          <div margin-vertical>
-              <ion-note><span>{{navParams.get('open_time')}}</span></ion-note>
+          <div>
+            <ion-note>{{navParams.get('type')}}</ion-note>
+          </div>
+          <div>
+              <ion-note><span>{{workingTime}}</span></ion-note>
           </div>
       </div>
-      <div class="list-wrapper" [style.height.px]="listWrapHeight">
-        <ion-list>
-            <ion-item #target *ngFor="let menuItem of resultSet">
-                <ion-thumbnail item-start (tap)="onSelect($event, menuItem)">
-                  <!-- <span #imgContainer class="image-container font-hidden">-->
-                    <!-- <img [src]="menuItem.imageUrl"> -->
-                    <!-- <div class="mock-image-container">
-                      <div class="mock">
-                        <ion-icon name="image"></ion-icon>
-                      </div>
-                    </div>
-                  </span>-->
-                  <img-loader [height]="80" [icon-hidden]="true" [target]="target"></img-loader>
+      <div (scroll)="scrollHandler()" class="list-wrapper" [style.height.px]="listWrapHeight">
+        <ion-list *ngFor="let menuType of resultSet">
+            <ion-list-header>
+              <h1>{{menuType.type}}</h1>
+              <h3><i>{{menuType.subhead}}</i></h3>
+            </ion-list-header>
+            <ion-item #target *ngFor="let menuItem of menuType.items">
+                <ion-thumbnail item-start (tap)="onSelect(menuItem, menuType)">
+                        <!-- <span #imgContainer class="image-container font-hidden">-->
+                          <!-- <img [src]="menuItem.imageUrl"> -->
+                          <!-- <div class="mock-image-container">
+                            <div class="mock">
+                              <ion-icon name="image"></ion-icon>
+                            </div>
+                          </div>
+                        </span>-->
+                    <img-loader [src]="menuItem.imageURL || ''" [height]="80" [icon-hidden]="true" [target]="target"></img-loader>
                 </ion-thumbnail>
-                <div (tap)="onSelect($event, menuItem)">
-                  <h2 [style.text-transform]="'capitalize'">{{menuItem.name}}</h2>
-                  <p><ion-note>{{menuItem.desc}}</ion-note></p>
-                  <ion-note><span>{{currency[menuItem.currency]}}.</span>&nbsp;<span>{{menuItem.price}}</span></ion-note>
+                <div (tap)="onSelect(menuItem, menuType)">
+                  <h2 text-capitalize>{{menuItem.name}}</h2>
+                  <p><ion-note>{{menuItem.description}}</ion-note></p>
+                  <ion-row>
+                    <ion-col><ion-note><span>{{currency[menuItem.currency]}}.</span>&nbsp;<span>{{menuItem.price}}</span></ion-note></ion-col>
+                    <ion-col>
+                      <ion-note>{{menuItem.size}}</ion-note>
+                    </ion-col>
+                  </ion-row>
                 </div>
-                <button (click)="cart.addToCart(menuItem)" ion-button clear item-end icon-left>Add<span>&nbsp;</span><ion-icon name="cart"></ion-icon></button>
+                <button (click)="addToCart(menuItem, menuType)" [disabled]="!isCanOrder" ion-button clear item-end icon-left>Add<span>&nbsp;</span><ion-icon name="cart"></ion-icon></button>
             </ion-item>
         </ion-list>
       </div>

@@ -1,5 +1,5 @@
 export * from './image-loader'
-export * from './preloader'
-export * from './http-provider'
+export * from './api-provider'
 export * from './shopping-cart'
 export * from './storage-provider'
+export * from './auth-provider'

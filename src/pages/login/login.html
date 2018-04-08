@@ -1,0 +1,22 @@
+<!--
+  Generated template for the LoginPage page.
+
+  See http://ionicframework.com/docs/components/#navigation for more info on
+  Ionic pages and navigation.
+-->
+
+<ion-content *ngIf="isPageNeedShow; else Spinner" padding>
+  <div class="bg-img-cont"><div class="bg-img"></div></div>
+  <h1 text-center class="main-title">Menu.lk</h1>
+  <ng-container *ngFor="let btn of buttons; index as i">
+      <button (click)="authProvider.signIn(i)" margin-top [style.color]="btn.txtColor" ion-button [style.background-color]="btn.btnColor" block>
+        <ion-icon *ngIf="btn.ico" class="btn-ico" [name]="btn.ico"></ion-icon>
+        <span text-uppercase>{{btn.custom ? '' : 'sign in with '}}{{btn.name}}</span>
+      </button>
+  </ng-container>
+</ion-content>
+
+<ng-template #Spinner>
+  <div class="spinner-container"><ion-spinner class="spinner" name="dots"></ion-spinner></div>
+</ng-template>
+

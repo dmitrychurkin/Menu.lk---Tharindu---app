@@ -2,11 +2,15 @@
 export const APP_TABS_PAGE = 'AppTabsPage';
 export const APP_SHOP_PAGE = 'ShopPage';
 export const APP_ITEM_PAGE = 'ItemPage';
+export const LOGIN_PAGE = 'LoginPage';
+export const CART_PAGE = 'CartPage';
 export enum Currency { US = "$", LAKR = "RS" };
-export const IMG_DATA_FIELD_TOKEN = 'imageUrl';
+export const IMG_DATA_FIELD_TOKEN = 'imageURL';
 export const enum APP_EV { 
   ADD_TO_CART = 'cart:add', 
-  REMOVE_FROM_CART = 'cart:remove' };
+  REMOVE_FROM_CART = 'cart:remove',
+  SORT_LIST = 'sort:list',
+  SEGMENT_CHANGED = 'segment:changed' };
 export const enum DATABASE_TOKENS { SHOPPING_CART = 'ShoppingCart' };
 
 /** Tests only */

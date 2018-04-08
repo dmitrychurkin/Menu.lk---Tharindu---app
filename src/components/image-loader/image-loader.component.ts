@@ -1,9 +1,8 @@
 
 import { Component, ChangeDetectionStrategy, ViewEncapsulation, Input, AfterViewInit, ViewChild, ElementRef, Renderer2 } from "@angular/core";
 import { ImageLoader } from "../../providers";
-import { Ion } from "ionic-angular";
+import { Ion, Content } from "ionic-angular";
 
-const REQUEST_BUFFER_DEFAULT = 1400;
 const RENDER_BUFFER_DEFAULT = 400;
 
 @Component({
@@ -14,7 +13,7 @@ const RENDER_BUFFER_DEFAULT = 400;
                    <ion-icon name="images"></ion-icon> 
                 </div>
               </div>
-              <img #img>
+              <img [src]="imgSrc || ''" #img>
             </div>`,
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
@@ -24,11 +23,11 @@ export class ImageLoaderComponent implements AfterViewInit {
 
   @Input('icon-hidden') isIconHidden?: boolean;
   @Input() target: HTMLElement | Ion;
-  @Input() requestBuffer = REQUEST_BUFFER_DEFAULT;
   @Input() renderedBuffer = RENDER_BUFFER_DEFAULT;
   @Input() height?: number;
   @Input() width?: number;
   @Input('src') imgSrc?: string;
+  @Input() id?: string;
 
   constructor(
     private _imageLoader: ImageLoader,
@@ -40,20 +39,30 @@ export class ImageLoaderComponent implements AfterViewInit {
     
     const imgElement = this.img.nativeElement;
     const imageContainer = this._renderer2.parentNode(imgElement);
-    const { target, _elRef: rootContainer, renderedBuffer, requestBuffer, imgSrc } = this;
+    const { target, _elRef: rootContainer, renderedBuffer, id } = this;
     
     this._setInitHeight(imageContainer, this.height);
-    this._imageLoader._images.push(new Img({
+    const IMAGE = new Img({
       imgElement, 
       imageContainer, 
       viewTarget: target instanceof HTMLElement ? target : target.getNativeElement(),
       renderedBuffer,
-      requestBuffer,
-      imgSrc,
       rootContainer,
       imageContainerHeight: this.height,
-      imageContainerWidth: this.width
-    }));
+      imageContainerWidth: this.width,
+      id
+    });
+    
+    const newImg = this._imageLoader.checkDuplicateImage(IMAGE);
+    console.log("IMAGES => ", this._imageLoader._images);
+    if (newImg instanceof Img) {
+      if (newImg.hasViewed) {
+        this._imageLoader.render(IMAGE);
+      }
+    }else {
+      this._imageLoader._images.push(IMAGE);
+    }
+    this._imageLoader.updateImgs();
   }
   private _setInitHeight(imageContainer, height) {
     if (height) {
@@ -61,77 +70,48 @@ export class ImageLoaderComponent implements AfterViewInit {
       this._renderer2.setStyle(imageContainer, 'height', `${height}px`);
     }
   }
-  ngAfterContentInit() {
-    //this._parentElem$ = this._elementRef$.nativeElement.parentElement;
-
-    //this._img = this._elementRef$.nativeElement.firstChild;
-    /*this._unreg = this._plt$.registerListener(this._img, 'load', () => {
-      this._hasLoaded = true;
-      this._rend2$.addClass(this._parentElem$, 'ready');
-      this.update();
-    }, { passive: true });
-
-    this._unreg$ = this._plt$.registerListener(this._img, 'error', (e) => {
-      console.log(e);
-      this._hasLoaded = false;
-      this._rend2$.addClass(this._parentElem$, 'error');
-      this.update();
-    }, { passive: true });*/
-    //this._rend2$.listen(this._img, 'load', () => this._rend2$.addClass(this._parentElem$, 'ready'));
-    // this._rend2$.listen(this._img, 'error', (e) => {
-    //   console.log(e);
-    //   this._rend2$.addClass(this._parentElem$, 'error');
-    // });
-    
-  }
-
 }
 
 export class Img {
-  isCanRequest = false;
+
   isCanRender = false;
-  hasLoaded = false;
-  hasError = false;
+  hasViewed = false;
   imgElement: HTMLImageElement;
   imageContainer: HTMLElement;
   rootContainer: ElementRef;
   viewTarget: HTMLElement;
-  requestBuffer: number;
   renderBuffer: number;
-  imgSrc: string;
   imageContainerHeight: number;
   imageContainerWidth: number;
-  _unregListLoad: Function;
-  _unregListError: Function;
+  id = '';
 
   constructor({ 
     imgElement, 
     imageContainer, 
-    viewTarget, requestBuffer, 
-    renderedBuffer, 
-    imgSrc, 
+    viewTarget, 
+    renderedBuffer,  
     rootContainer,
     imageContainerHeight,
-    imageContainerWidth }: IImgSettings) {
+    imageContainerWidth,
+    id }: IImgSettings) {
 
     this.imgElement = imgElement;
     this.imageContainer = imageContainer;
     this.viewTarget = viewTarget;
-    this.requestBuffer = requestBuffer;
     this.renderBuffer = renderedBuffer;
     this.rootContainer = rootContainer;
     this.imageContainerHeight = imageContainerHeight;
     this.imageContainerWidth = imageContainerWidth;
+    this.id = id;
   }
 }
 interface IImgSettings {
+  id: string;
   imgElement: HTMLImageElement;
   imageContainer: HTMLElement;
   rootContainer: ElementRef;
   viewTarget: HTMLElement;
-  imgSrc?: string;
   imageContainerHeight?: number;
   imageContainerWidth?: number;
-  requestBuffer?: number;
   renderedBuffer?: number;
 }

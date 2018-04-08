@@ -1,5 +1,6 @@
 import { Component } from "@angular/core";
 import { IonicPage, NavParams } from "ionic-angular";
+import { IMG_DATA_FIELD_TOKEN } from "../../../pages.constants";
 
 @IonicPage()
 @Component({
@@ -17,8 +18,8 @@ export class ItemPage {
   
   
   ionViewDidLoad() {
-    console.log(this.navParams.get('imageUrl'));
-    this.backgroundImage = `url(${this.navParams.get('imageUrl')})`;
+    console.log(this.navParams.get('_id'));
+    this.backgroundImage = `url(${this.navParams.get('menu').item[IMG_DATA_FIELD_TOKEN]})`;
   }
   onInc() {
     this.itemCount++;

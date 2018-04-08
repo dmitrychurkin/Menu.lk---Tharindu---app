@@ -1,8 +1,10 @@
-import { Component, Injector, ViewChild, AfterViewInit, AfterViewChecked } from '@angular/core';
-import { IonicPage } from 'ionic-angular';
-import { APP_SHOP_PAGE } from '../pages.constants';
+import { Component, Injector } from '@angular/core';
+import { IonicPage, InfiniteScroll } from 'ionic-angular';
+import { APP_SHOP_PAGE, APP_EV } from '../pages.constants';
 
 import Base from '../page.base.class';
+import { IPageConfig, IRestaurants } from '../../interfaces';
+import { asap } from 'rxjs/scheduler/asap';
 
 
 /**
@@ -17,61 +19,154 @@ import Base from '../page.base.class';
   selector: 'page-home',
   templateUrl: 'home.html',
 })
-export class HomePage extends Base /*implements AfterViewInit, AfterViewChecked*/ {
+export class HomePage extends Base {
+  
+  pageConfig: IPageConfig = {
+      fireConfig: {
+        scope: 'restaurants',
+        batchSize: 5,
+        childRef: 'rating'
+      },
+      withPreloader: true,
+      job: this._pageJob
+  }
+  // foodType = 'restaurants';
+  //Restaurants = new ListEntity;
+  //Caterings = new ListEntity;
+  
+  ionSegmentActivated = false;
+  PageDataStore = new Map<string, ListEntity>();
   protected readonly _pageName = APP_SHOP_PAGE;
-  // shops = [];
-  // 
-  // private _isImagesReady: (value?: true | PromiseLike<true>) => void;
-  constructor(
-    //public app: App, 
-    //public preloader: PreloaderProvider,
-    //public imagesLoader: ImageLoaderProvider
-    injector: Injector
-  ) { 
-    super(injector, { url: 'mainMenu' }, /*(mainMenu: any) => this.shops.push(...mainMenu)*/undefined, true); 
-    
-}
-  /*ngAfterViewInit() {
-    new Promise((resolve: any) => this._isImagesReady = resolve)
-      .then(() => this._content.imgsUpdate());
-  }
-  ngAfterViewChecked() {
-    let { _content, shops, _isImagesReady } = this;
-    if (shops && _content._imgs.length == shops.length) {
-        _isImagesReady(true);
-    }
-  }*/
-  //scrollHandler(e: any) {
-    //this._content.imgsUpdate();
-  //}
 
-  /*ngOnInit() {
-    this.resourceResult = 
-            this.getShops()
-                .then((mainMenu: any) => this.shops = mainMenu);
+  protected _toggleHandlerRef$: Function = this._reverseListHandler$();
+
+  constructor(injector: Injector) { 
+    super(injector);
+    this.initRequest(this.pageConfig); 
   }
-  ngAfterViewInit() {
-    this.resourceResult
-        .then((shops: any) => {
-          this.imagesLoader.loadImages( this._extractImagesHelper(shops), this.imgsContainers ) 
-        })
-        // .catch();
+  onSelect(Entity: IRestaurants) {
+    this._navigateFromRoot(this._pageName, Entity);
+  }
+  private _reverseListHandler$() {
+    
+    return (event: boolean) => {
+      
+      const Entity = this.PageDataStore.get(this.pageConfig.fireConfig.scope);
+      
+      Entity.isReversed = event;
+      this._sortList(event, Entity.items);
+    }
+  }
+  
+  onIonSegmentSelect(e: string) {
+    console.log("FROM onIonSegmentSelect => _images", this.imagesLoader._images);
+    if (this._content.isScrolling || this.ionSegmentActivated) {
+      return;
+    }
+    const lambda = (scope: string) => {
+      const delay = 300;
+      const Entity = this.PageDataStore.get(scope);
+      this._content.scrollTo(0, Entity.scrollPos).then(() => asap.schedule( () => this.ionSegmentActivated = !this.ionSegmentActivated, delay));
+
+      this.events.publish(APP_EV.SEGMENT_CHANGED, Entity.isReversed);
+      this.imagesLoader.updateImgs();
+    };
+
+    this.ionSegmentActivated = true;
+    // remember previous position;
+    const previousScope = this.pageConfig.fireConfig.scope;
+    this.PageDataStore.get(previousScope).scrollPos = this._content.scrollTop;
+
+    this.pageConfig.fireConfig.scope = e;
+
+    // scrolling to position
+    if (!this.PageDataStore.get(e)) {
+      return this.getResource(this.pageConfig).then(() => lambda(e));
+    }
+    return lambda(e);
+  }
+  private _pageJob(resultSet: IRestaurants[]) {
+    try {
+      console.log("DEBUG FROM _pageJob resultSet => ",resultSet );
+      // const sortItemsFn = (a: any, b: any) => a[sortingProp] - b[sortingProp];
+
+      const scope = this.pageConfig.fireConfig.scope;
+      
+      let Entity = this.PageDataStore.get(scope);
+      if ( !(Entity instanceof ListEntity) ) {
+        Entity = this.PageDataStore.set(scope, new ListEntity(scope)).get(scope);
+      }
+ 
+
+      if (resultSet.length == 0) {
+        Entity.isFinished = true;
+        return;
+      }
+        
+      Entity.lastKey  = resultSet.slice(-1)[0]._id;
+
+      const newSet =  (resultSet.length < this.pageConfig.fireConfig.batchSize) ? resultSet.slice(0) : resultSet.slice(0, resultSet.length - 1);
+      
+      Entity.items.push(...newSet);
+
+        console.log("DEBUG FROM _defaultJob LASTKEY => ", Entity.lastKey);
+        
+        
+        console.log("DEBUG FROM this.resultSet => ", Entity.items);
+
+      if (Entity.lastKey === Entity.items.slice(-1)[0]._id) {
+        Entity.isFinished = true;
+      }
+      console.log("PageDataStore.get(pageConfig.fireConfig.scope)?.items => ", this.PageDataStore.get(this.pageConfig.fireConfig.scope).items);
+      return this._sortList(Entity.isReversed, Entity.items);
+
+    } catch(err) {
+      console.log("FUCKING ERROR => err", err)
+    }
+  }
+  
+  /*private _setLastKey(lastKey: string) {
+    // const ctr: any = this.constructor;
+    //this.PageDataStore.get(this.foodType).lastKey = lastKey;
+    if (typeof this.pageConfig.fireConfig === 'object') {
+      this.pageConfig.fireConfig.lastKey = lastKey;//this.lastKey;
+    }else {
+    //if (typeof this.pageConfig.httpConfig === 'object') {
+      this.pageConfig.httpConfig.lastKey = lastKey;//this.lastKey;
+    }
+  }
+  private _getLastKey() {
+    if (typeof this.pageConfig.fireConfig === 'object') {
+      return this.pageConfig.fireConfig.lastKey;
+    }
+    return this.pageConfig.httpConfig.lastKey;
   }*/
-  //ionViewDidLoad() {
-    //console.log('ionViewDidLoad HomePage');
-  //}
-  //onSelect(e, shopProps) {
-    //this.app.getRootNav().push(APP_SHOP_PAGE, shopProps);
- // }
-  /*getShops() {
-    return this.preloader.startLoad(() => 
-        mockBackendCall( () => {
-          console.log('Fake api call has made!');
-          return Promise.resolve(mainMenu);
-        } ) 
-    );
-  }*/
-  /*_extractImagesHelper(shops: Array<any>) {
-    return shops.map(({ imageUrl }) => imageUrl);
-  }*/
+  loadFromInfinityScroll(infiniteScroll: InfiniteScroll) {
+    
+    const Entity = this.PageDataStore.get(this.pageConfig.fireConfig.scope);
+
+    if (Entity.isFinished) {
+      infiniteScroll.complete();
+      return;
+    }
+    this.pageConfig.fireConfig.lastKey = Entity.lastKey;
+    this.getResource( Object.assign({}, this.pageConfig, { withPreloader: false }) )
+        .then( () => {
+          infiniteScroll.complete();
+          //console.log("HUI")
+        });
+        //.catch( err => console.log("DEBUG ERROR => err", err));
+  }
+
+  
+}
+
+class ListEntity {
+  items: Array<IRestaurants> = [];
+  isReversed = false;
+  isFinished = false;
+  scrollPos = 0;
+  lastKey: string;
+
+  constructor(public scopeValue: string) {}
 }

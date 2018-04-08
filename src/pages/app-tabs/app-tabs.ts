@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { IonicPage, NavController } from 'ionic-angular';
+import { AuthProvider } from '../../providers';
 
 /**
  * Generated class for the AppTabsPage tabs.
@@ -19,7 +20,15 @@ export class AppTabsPage {
   searchRoot = 'SearchPage'
   profileRoot = 'ProfilePage'
 
+  isUserSigned = false;
 
-  constructor(public navCtrl: NavController) {}
-
+  constructor(authProvider: AuthProvider, navCtrl: NavController) {
+    authProvider.user.subscribe((user: any) => {
+      console.log("AppTabsPage user => ", user);
+      if (!user) {
+        authProvider.goToLoginPage(navCtrl);
+      }
+      this.isUserSigned = !!user;
+    });
+  }
 }

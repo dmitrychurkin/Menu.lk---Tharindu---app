@@ -87,7 +87,9 @@ $colors: (
 @import "roboto";
 @import "noto-sans";
 
-$toolbar-background: map-get($colors, primary);
+$toolbar-md-background: map-get($colors, primary);
+$segment-button-md-text-color-activated: #fff;
+$segment-button-md-border-color-activated: #fff;
 
 @mixin image-loader($font-size, $height) {
   $font-transparent: rgba(0, 0, 0, 0);

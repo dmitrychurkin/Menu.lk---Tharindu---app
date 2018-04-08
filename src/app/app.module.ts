@@ -3,13 +3,25 @@ import { ErrorHandler, NgModule } from '@angular/core';
 import { IonicApp, IonicErrorHandler, IonicModule } from 'ionic-angular';
 import { SplashScreen } from '@ionic-native/splash-screen';
 import { StatusBar } from '@ionic-native/status-bar';
+import { NativeAudio } from '@ionic-native/native-audio';
 
 import { MyApp } from './app.component';
-import { HttpProvider, ShoppingCart, StorageProvider }  from '../providers';
-import { PreloaderProvider } from '../providers';
+import { ApiProvider, ShoppingCart, StorageProvider, AuthProvider }  from '../providers';
 import { HttpClientModule } from '@angular/common/http';
 import { IonicStorageModule } from '@ionic/storage';
 
+import { AngularFireModule } from 'angularfire2';
+import { AngularFireDatabaseModule, AngularFireDatabase } from 'angularfire2/database';
+import { AngularFireAuthModule } from 'angularfire2/auth';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDnyJhYizozTXovtuKzUCOrV5gL5mRDUIo",
+  authDomain: "menu-lk.firebaseapp.com",
+  databaseURL: "https://menu-lk.firebaseio.com",
+  projectId: "menu-lk",
+  storageBucket: "menu-lk.appspot.com",
+  messagingSenderId: "544716606293"
+};
 
 @NgModule({
   declarations: [
@@ -19,7 +31,10 @@ import { IonicStorageModule } from '@ionic/storage';
     BrowserModule,
     IonicModule.forRoot(MyApp),
     HttpClientModule,
-    IonicStorageModule.forRoot()
+    IonicStorageModule.forRoot(),
+    AngularFireModule.initializeApp(firebaseConfig),
+    AngularFireDatabaseModule,
+    AngularFireAuthModule
   ],
   bootstrap: [IonicApp],
   
@@ -27,10 +42,12 @@ import { IonicStorageModule } from '@ionic/storage';
     StatusBar,
     SplashScreen,
     {provide: ErrorHandler, useClass: IonicErrorHandler},
-    PreloaderProvider,
-    HttpProvider,
+    NativeAudio,
+    ApiProvider,
     ShoppingCart,
-    StorageProvider
+    StorageProvider,
+    AngularFireDatabase,
+    AuthProvider
   ]
 })
 export class AppModule {}
