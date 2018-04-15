@@ -26,3 +26,16 @@
     }
   }
 }
+.sintetic-grid {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

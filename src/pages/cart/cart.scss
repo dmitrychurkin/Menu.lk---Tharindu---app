@@ -1,3 +1,24 @@
 page-cart {
-
+  .title {
+    transition: .5s;
+    animation: appear .5s ease-in-out;
+    &.remove {
+      opacity: 0;
+    }
+  }
+  .delete-mode {
+    overflow: hidden;
+  }
+  .notes-layout, .label-wrapper {
+    display: flex;
+    ion-avatar {
+      align-self: center;
+    }
+    .item-desc {
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+      width: calc(100vw - 150px);
+    }
+  }
 }

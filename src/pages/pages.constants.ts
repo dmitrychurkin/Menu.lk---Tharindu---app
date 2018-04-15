@@ -6,15 +6,16 @@ export const LOGIN_PAGE = 'LoginPage';
 export const CART_PAGE = 'CartPage';
 export enum Currency { US = "$", LAKR = "RS" };
 export const IMG_DATA_FIELD_TOKEN = 'imageURL';
-export const enum APP_EV { 
-  ADD_TO_CART = 'cart:add', 
-  REMOVE_FROM_CART = 'cart:remove',
-  SORT_LIST = 'sort:list',
-  SEGMENT_CHANGED = 'segment:changed' };
-export const enum DATABASE_TOKENS { SHOPPING_CART = 'ShoppingCart' };
-
+export enum CART_ACTION_FLAGS { ADD, DELETE };
+export enum APP_EV { 
+  CART_ACTION = 'cart:action => add | delete', 
+  DELETE_CART_MODE = 'cart:deleteMode'
+};
+export enum DATABASE_TOKENS { SHOPPING_CART = 'ShoppingCart' };
+export const MAX_CART_ITEMS = 25;
+export enum PopoverCartMenuEventFlags { DELETE = 'D', CANCEL = 'X' };
 /** Tests only */
-let urlNormalizer = (img: string, isShop: number | boolean = false) => `assets/imgs/${isShop ? 'shops/' : ''}${img}`;
+/*let urlNormalizer = (img: string, isShop: number | boolean = false) => `assets/imgs/${isShop ? 'shops/' : ''}${img}`;
 export let mockBackendCall: (...args: Array<any>) => Promise<any> = (job: (...args: Array<any>) => any, needSuccess= true, delay= 1000) => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
@@ -180,4 +181,4 @@ export const shopMenus =
         "imageUrl": urlNormalizer('americano.jpg', 1)
       }
     ]
-  };
+  };*/

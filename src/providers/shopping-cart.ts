@@ -1,119 +1,238 @@
 import { Injectable } from "@angular/core";
-import { ToastController, Events, Platform } from "ionic-angular";
-import { StorageProvider } from "./storage-provider";
-import { DATABASE_TOKENS, APP_EV } from "../pages/pages.constants";
-import { IOrder, Cart, IEntityInCart, IMenuType } from "../interfaces";
 import { NativeAudio } from "@ionic-native/native-audio";
+import { Events, Platform } from "ionic-angular";
+import { Cart, IEntityInCart, IMenuItem, IMenuType, IOrder } from "../interfaces";
+import { APP_EV, CART_ACTION_FLAGS, DATABASE_TOKENS, MAX_CART_ITEMS } from "../pages/pages.constants";
+import { StorageProvider } from "./storage-provider";
 
 @Injectable()
 export class ShoppingCart {
 
-  // quantity = 1;
-
-  private _errorMessage = (err?: any) => `${err || 'Error'} occured while trying to add to cart`;
+  private _removedCount = 0;
 
   constructor(
     private _events: Events,
     private _plt: Platform,
-    private _toastCtrl: ToastController,
     private _storageProvider: StorageProvider,
-    private _nativeAudio: NativeAudio) {
-      _storageProvider.errorMessage = this._errorMessage;
-      //console.log("TEST DATABASE_TOKENS => ", DATABASE_TOKENS.SHOPPING_CART);
-    }
-    
-    async addToCart(Order: IOrder) {
-      try {
-        let CartEntity: Cart = await this._storageProvider.getItem( DATABASE_TOKENS.SHOPPING_CART );
+    private _nativeAudio: NativeAudio) { }
+
+  get CartEntity() {
+    return this._storageProvider.getItem(DATABASE_TOKENS.SHOPPING_CART)
+      .then((CartEntity: Cart) => {
         if (!CartEntity || !Array.isArray(CartEntity.CART) || typeof CartEntity.TOTAL_ORDERS_IN_CART !== 'number') {
           CartEntity = { TOTAL_ORDERS_IN_CART: 0, CART: [] }
         }
-        let EntireDataSet = CartEntity.CART;
-        // if (!Array.isArray(EntireDataSet)) {
-        //   EntireDataSet = [];
-        // }
-        let EntityInCart = EntireDataSet.find(({ id }: IEntityInCart) => id === Order.id);
-        console.log("LOGGING EntityInCart => ", EntityInCart);
-        const MenuItemTemplate = { ...Order.menu.item, quantity: Order.menu.quantity };
-        const MenuTypeTemplate = { type: Order.menu.type, subhead: Order.menu.subhead, items: [ MenuItemTemplate ] };
-        if (!EntityInCart) {
-          EntityInCart = { 
-            id: Order.id, 
-            entityName: Order.entityName, 
-            orders: [ 
-              MenuTypeTemplate 
-            ] 
-          };
-          EntireDataSet.push( EntityInCart );
-        }else {
+        return CartEntity;
+      });
+  }
 
-          let MenuType: IMenuType = EntityInCart.orders.find(({ type, subhead }) => {
-            if (subhead) {
-              if (type === Order.menu.type && subhead === Order.menu.subhead) {
-                return true;
-              }
-            }else {
-              if (type === Order.menu.type) {
-                return true;
-              }
+  async addToCart(Order: IOrder) {
+
+    try {
+      const CartEntity: Cart = await this.CartEntity; 
+      
+      if (CartEntity.TOTAL_ORDERS_IN_CART + Order.menu.quantity > MAX_CART_ITEMS) {
+        throw new Error('Too many items in cart, first buy this!');
+      }
+      const EntireDataSet = CartEntity.CART;
+      
+      let EntityInCart = EntireDataSet.find(({ id }: IEntityInCart) => id === Order.id);
+      const MenuItemTemplate = { ...Order.menu.item, quantity: Order.menu.quantity };
+      const MenuTypeTemplate = { type: Order.menu.type, subhead: Order.menu.subhead, items: [MenuItemTemplate] };
+      if (!EntityInCart) {
+        EntityInCart = {
+          id: Order.id,
+          entityName: Order.entityName,
+          orders: [
+            MenuTypeTemplate
+          ]
+        };
+        EntireDataSet.push(EntityInCart);
+      } else {
+
+        let MenuType: IMenuType = EntityInCart.orders.find(({ type, subhead }) => {
+          if (subhead) {
+            if (type === Order.menu.type && subhead === Order.menu.subhead) {
+              return true;
             }
-          });
-          if (!MenuType) {
-            EntityInCart.orders.push( MenuTypeTemplate );
-          }else {
-            MenuType.items.push( MenuItemTemplate );
+          } else {
+            if (type === Order.menu.type) {
+              return true;
+            }
+          }
+        });
+        if (!MenuType) {
+          EntityInCart.orders.push(MenuTypeTemplate);
+        } else {
+          let MenuItem = MenuType.items.find(({ _id }: IMenuItem) => _id === Order.menu.item._id);
+          if (!MenuItem) {
+            MenuType.items.push(MenuItemTemplate);
+          } else {
+            MenuItem.quantity += Order.menu.quantity;
           }
         }
-
-        CartEntity.TOTAL_ORDERS_IN_CART += Order.menu.quantity;
-
-        await this._storageProvider.setItem( DATABASE_TOKENS.SHOPPING_CART, CartEntity );
-
-        this._toastCtrl.create({
-          message: `${Order.menu.quantity} ${Order.menu.item.name.toUpperCase()} was added to cart`,
-          duration: 3000
-        }).present();
-
-        this._events.publish( APP_EV.ADD_TO_CART, Order.menu.quantity );
-        console.log("DEBUG FROM addToCart => EntireDataSet, Order", EntireDataSet, Order);
-        if (this._plt.is('mobileweb')) {
-          return new Audio('assets/sounds/addToCart.mp3').play();
-        }
-        return this._nativeAudio.preloadSimple('addToCartTone', 'assets/sounds/addToCart.mp3').then(() => 
-          this._nativeAudio.play('addToCartTone')
-        ).catch( (err: any) => console.log("ERROR OCCURED WHILE PLAYING SIGNAL => ", err) );
-
-      } catch(err) {
-        // Handling all errors here :)
-        this._toastCtrl.create({
-          message: `${this._errorMessage(err && err.message)}`,
-          duration: 3000
-        }).present();
-
       }
-      /*let DATA_DB = null;
+      this._completer({
+        actionFlag: CART_ACTION_FLAGS.ADD,
+        message: `${Order.menu.quantity} ${Order.menu.item.name.toUpperCase()} was added to cart`,
+        soundPath: 'addToCart.mp3',
+        cartDbEntity: CartEntity,
+        itemCount: Order.menu.quantity
+      });
       
-
-          .then((data: any) => {
-              if (!Array.isArray(data)) {
-                data = [];
-              }
-              data.push( menuItem );
-              DATA_DB = data;
-              return this._storageProvider
-                        .setItem( DATABASE_TOKENS.SHOPPING_CART, DATA_DB );
-          })
-          .then(() => {
-            this._toastCtrl.create({
-              message: `${this.quantity} ${menuItem.name.toUpperCase()} was added to cart`,
-              duration: 3000
-            }).present();
-
-            // music din - din
-
-            this._events.publish( APP_EV.ADD_TO_CART, DATA_DB );
-          });*/
-
+    } catch (err) {
+      // Handling all errors here :)
+      this._toastMessageHandler(`${(err && err.message) || 'Error occured while trying to add to cart'}`);
     }
 
+  }
+
+  datasetIterator(lambda: (InfoObject: IDatasetIteratorLambdaObjectInfo, $event?: any) => void, Dataset: IEntityInCart[], $event?: any) {
+
+    for (let i = 0; i < Dataset.length; i++) {
+      const EntityInCart = Dataset[i];
+      if (typeof EntityInCart === 'object' && Array.isArray(EntityInCart.orders)) {
+        if (EntityInCart.orders.length == 0) {
+          Dataset.splice(i, 1);
+          this.datasetIterator(lambda, Dataset, $event);
+        } else {
+
+          for (let j = 0; j < EntityInCart.orders.length; j++) {
+            const MenuType = EntityInCart.orders[j];
+            if (typeof MenuType === 'object' && Array.isArray(MenuType.items)) {
+              if (MenuType.items.length == 0) {
+                EntityInCart.orders.splice(j, 1);
+                this.datasetIterator(lambda, Dataset, $event);
+              } else {
+
+                for (let k = 0; k < MenuType.items.length; k++) {
+                  const MenuItem = MenuType.items[k];
+                  if (typeof MenuItem === 'object') {
+                    lambda({ menuItemArray: MenuType.items, menuItem: MenuItem, index: k }, $event);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+  }
+
+  deleteItemHandlerFn(MenuItemToDelete: IMenuItem, EntireDataSet: IEntityInCart[]) {
+    const Fn = ({ menuItemArray, menuItem, index }: IDatasetIteratorLambdaObjectInfo) => {
+      if (menuItem._id === MenuItemToDelete._id) {
+        if (MenuItemToDelete.quantity < menuItem.quantity) {
+          menuItem.quantity = MenuItemToDelete.quantity;
+        } else if (MenuItemToDelete.quantity == menuItem.quantity) {
+          menuItemArray.splice(index, 1);
+          this.datasetIterator(Fn, EntireDataSet);
+        }
+      }
+    };
+    return Fn;
+  }
+
+  deleteItemsetHandletFn(DatasetAngular: IEntityInCart[], DatasetDb: IEntityInCart[]) {
+    
+    const Fn = ({ menuItemArray, menuItem, index }: IDatasetIteratorLambdaObjectInfo) => {
+      if (menuItem.meta && menuItem.meta.itemMarkForDelete) {
+        this.deleteItemHandlerFn(menuItem, DatasetAngular)({ menuItemArray, menuItem, index });
+        this.datasetIterator(this.deleteItemHandlerFn(menuItem, DatasetDb), DatasetDb);
+        this._removedCount += menuItem.quantity;
+        this.deleteItemsetHandletFn(DatasetAngular, DatasetDb);
+      }
+    };
+    this.datasetIterator(Fn, DatasetAngular);
+    
+  }
+  async removeFromCart(ItemToDeleteOrDatasetAngular: IMenuItem | IEntityInCart[], DatasetAngular?: IEntityInCart[]) {
+    try {
+      const CartEntity: Cart = await this.CartEntity;
+      const EntireDataSet = CartEntity.CART;
+      let itemCount: number, message: string, soundPath = 'removeFromCart.mp3';
+
+      if (Array.isArray(ItemToDeleteOrDatasetAngular)) {
+        this.deleteItemsetHandletFn(ItemToDeleteOrDatasetAngular, EntireDataSet);
+        itemCount = this._removedCount;
+        this._removedCount = 0;
+        message = `${itemCount} items was removed from cart`;
+
+      } else {
+        itemCount = ItemToDeleteOrDatasetAngular.quantity;
+        message = `${ItemToDeleteOrDatasetAngular.quantity} ${ItemToDeleteOrDatasetAngular.name.toUpperCase()} was removed from cart`;
+        this.datasetIterator(this.deleteItemHandlerFn(ItemToDeleteOrDatasetAngular, DatasetAngular), DatasetAngular);
+        this.datasetIterator(this.deleteItemHandlerFn(ItemToDeleteOrDatasetAngular, EntireDataSet), EntireDataSet);
+      }
+
+      return this._completer({
+        actionFlag: CART_ACTION_FLAGS.DELETE,
+        message,
+        soundPath,
+        cartDbEntity: CartEntity,
+        itemCount
+      });
+
+    } catch (err) {
+      this._toastMessageHandler(`${(err && err.message) || 'Error occured while trying to remove item from cart'}`);
+    }
+  }
+
+  private async _completer({ actionFlag, message, soundPath, cartDbEntity, itemCount }: ICompliterArgs) {
+    try {
+
+      switch (actionFlag) {
+        case CART_ACTION_FLAGS.ADD:
+          cartDbEntity.TOTAL_ORDERS_IN_CART += itemCount;
+          break;
+
+        case CART_ACTION_FLAGS.DELETE:
+          cartDbEntity.TOTAL_ORDERS_IN_CART -= itemCount;
+          break;
+      }
+
+      await this._storageProvider.setItem(DATABASE_TOKENS.SHOPPING_CART, cartDbEntity);
+
+      this._toastMessageHandler(message);
+
+      this._events.publish(APP_EV.CART_ACTION, actionFlag, itemCount);
+
+      return this._playSound(soundPath);
+
+    } catch (err) {
+      this._toastMessageHandler(`${(err && err.message) || 'Error occured'}`);
+    }
+
+  }
+
+  private _playSound(soundPath?: string) {
+    if (!soundPath) return;
+    const SoundFilePath = `assets/sounds/${soundPath}`;
+    if (this._plt.is('mobileweb')) {
+      return new Audio(SoundFilePath).play();
+    }
+    return this._nativeAudio.preloadSimple('addToCartTone', SoundFilePath)
+      .then(() =>
+        this._nativeAudio.play('addToCartTone')
+      );
+  }
+
+  private _toastMessageHandler(errMessage: string) {
+    this._storageProvider.configToast(errMessage)();
+  }
+  
+}
+
+interface ICompliterArgs {
+  actionFlag: CART_ACTION_FLAGS;
+  message: string;
+  soundPath?: string;
+  cartDbEntity: Cart;
+  itemCount: number;
+}
+export interface IDatasetIteratorLambdaObjectInfo {
+  menuItemArray: IMenuItem[];
+  menuItem: IMenuItem;
+  index: number;
 }

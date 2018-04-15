@@ -28,6 +28,9 @@ export interface IMenuItem extends Base {
   currency: 'US' | 'LAKR';
   price: number | string;
   quantity?: number;
+  meta?: {
+    itemMarkForDelete: boolean;
+  }
 }
 
 export type Cart = { TOTAL_ORDERS_IN_CART: number, CART: Array<IEntityInCart> };

@@ -1,10 +1,10 @@
-import { Component, ViewChild, ElementRef, Injector, AfterViewInit } from "@angular/core";
+import { AfterViewInit, Component, ElementRef, Injector, ViewChild } from "@angular/core";
 import { IonicPage } from "ionic-angular";
-
-import { Currency, APP_ITEM_PAGE, IMG_DATA_FIELD_TOKEN } from "../../pages.constants";
-import Base from "../../page.base.class";
+import { IMenuItem, IMenuType, IOrder, IPageConfig } from "../../../interfaces";
 import { ShoppingCart } from "../../../providers";
-import { IPageConfig, IMenuType, IMenuItem, IOrder } from "../../../interfaces";
+import Base from "../../page.base.class";
+import { APP_ITEM_PAGE, Currency, IMG_DATA_FIELD_TOKEN } from "../../pages.constants";
+
 
 
 @IonicPage()
@@ -45,7 +45,8 @@ export class ShopPage extends Base implements AfterViewInit {
     this.initRequest(this.pageConfig);
   }
   onSelect(menuItem: IMenuItem, { type, subhead }:IMenuType) {
-    this._navigateFromRoot(this._pageName, this._orderFactory(menuItem, type, subhead));
+    // this._navigateFromRoot(this._pageName, this._orderFactory(menuItem, type, subhead));
+    this.app.getRootNav().push(this._pageName, this._orderFactory(menuItem, type, subhead));
   }
   addToCart(menuItem: IMenuItem, { type, subhead }: IMenuType) {
     console.log("ACTIVATED ADD TO CART => menuItem ", menuItem, type, subhead);
@@ -123,6 +124,10 @@ export class ShopPage extends Base implements AfterViewInit {
   }*/
   ionViewDidLoad() {
     this.backgroundImage = `url(${this.navParams.get(IMG_DATA_FIELD_TOKEN)})`;
+  }
+  private _timeFormatter(date: Date) {
+    // Example return "7:19 PM"
+    return date.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
   }
   //onSelect(e, itemProps) {
     //this.app.getRootNav().push(APP_ITEM_PAGE, itemProps);

@@ -1,12 +1,10 @@
-import { Injector, OnInit, AfterViewInit, ViewChild, Renderer2 } from "@angular/core";
-import { ApiProvider, ImageLoader } from "../providers";
-import { APP_EV } from "./pages.constants";
-import { NavParams, App, Content, Events, LoadingController, AlertController, Loading } from "ionic-angular";
+import { AfterViewInit, Injector, Renderer2, ViewChild } from "@angular/core";
+import { AlertController, App, Content, Events, Loading, LoadingController, NavParams } from "ionic-angular";
 import { IPageConfig, IRestaurants } from "../interfaces";
-import { asap } from 'rxjs/scheduler/asap';
+import { ApiProvider, ImageLoader } from "../providers";
 
 
-export default class Base implements OnInit, AfterViewInit {
+export default class Base implements AfterViewInit {
   
   // infinity scroll props
   // lastKey: string;
@@ -16,7 +14,7 @@ export default class Base implements OnInit, AfterViewInit {
   // resultSet: IRestaurants[] = [];
 
   // service props
-  protected _toggleHandlerRef$: Function;
+  // protected _toggleHandlerRef$: Function;
   @ViewChild(Content) _content: Content;
   // private _configuredRequest: (...args: any[]) => any;
   private renderer2: Renderer2;
@@ -28,7 +26,7 @@ export default class Base implements OnInit, AfterViewInit {
   events: Events;
   
   // new page push props
-  protected readonly _pageName: string;
+  // protected readonly _pageName: string;
   navParams: NavParams;
   app: App;
 
@@ -48,15 +46,15 @@ export default class Base implements OnInit, AfterViewInit {
     //   this._configuredRequest = this._setRequest(pageConfig);
     // }
   }
-  protected initRequest(pageConfig: IPageConfig) {
+  initRequest(pageConfig: IPageConfig) {
     // this._configuredRequest = this._setRequest(pageConfig);
     this.resourceResult = this.getResource(pageConfig);
   }
-  ngOnInit() {
-    if (!this.navParams.get('_id')) {
-      this.events.subscribe(APP_EV.SORT_LIST, this._toggleHandlerRef$);
-    }
-  }
+  // ngOnInit() {
+  //   if (!this.navParams.get('_id')) {
+  //     this.events.subscribe(APP_EV.SORT_LIST, this._toggleHandlerRef$);
+  //   }
+  // }
   ngAfterViewInit() {
     this.imagesLoader.configure(this._content, this.renderer2);
     
@@ -69,9 +67,9 @@ export default class Base implements OnInit, AfterViewInit {
     //       // this.imagesLoader.configure(this._content, this.renderer2)
     //     });
   }
-  ionViewWillUnload() {
-    this.events.unsubscribe(APP_EV.SORT_LIST, this._toggleHandlerRef$);
-  }
+  //ionViewWillUnload() {
+    //this.events.unsubscribe(APP_EV.SORT_LIST, this._toggleHandlerRef$);
+  //}
   
   
   scrollHandler() {
@@ -100,7 +98,7 @@ export default class Base implements OnInit, AfterViewInit {
       // return this.preloader.startLoad({ job: handlerFn(), onSuccess: job });
       loading = this.loadingCtrl.create({
         content: 'Please wait...',
-        dismissOnPageChange: true
+        dismissOnPageChange: false
       }); 
       loading.present();
     }
@@ -126,20 +124,14 @@ export default class Base implements OnInit, AfterViewInit {
   }
   
   
-  protected _sortingFn(reversed= false, sortingProp= 'rating') {
+  /*private _sortingFn(reversed= false, sortingProp= 'rating') {
 
     return (a: any, b: any) => reversed ? b[sortingProp] - a[sortingProp] : a[sortingProp] - b[sortingProp];
-  }
+  }*/
   
-  protected _sortList(reversed: boolean, collectionType: Array<IRestaurants>) {
-    asap.schedule(() => this.imagesLoader.updateImgs());
-    return collectionType.sort(this._sortingFn(reversed));
-  }
-  protected _navigateFromRoot(pageName: string, pageProps?: any) {
+  
+  /*protected _navigateFromRoot(pageName: string, pageProps?: any) {
     this.app.getRootNav().push(pageName, pageProps);
-  }
-  protected _timeFormatter(date: Date) {
-    // Example return "7:19 PM"
-    return date.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
-  }
+  }*/
+  
 }

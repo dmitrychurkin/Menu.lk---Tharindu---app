@@ -1,10 +1,10 @@
 import { Component, Injector } from '@angular/core';
-import { IonicPage, InfiniteScroll } from 'ionic-angular';
-import { APP_SHOP_PAGE, APP_EV } from '../pages.constants';
-
-import Base from '../page.base.class';
-import { IPageConfig, IRestaurants } from '../../interfaces';
+import { InfiniteScroll, IonicPage } from 'ionic-angular';
 import { asap } from 'rxjs/scheduler/asap';
+import { IPageConfig, IRestaurants } from '../../interfaces';
+import Base from '../page.base.class';
+import { /*APP_EV,*/ APP_SHOP_PAGE } from '../pages.constants';
+
 
 
 /**
@@ -36,28 +36,39 @@ export class HomePage extends Base {
   
   ionSegmentActivated = false;
   PageDataStore = new Map<string, ListEntity>();
-  protected readonly _pageName = APP_SHOP_PAGE;
+  private readonly _pageName = APP_SHOP_PAGE;
 
-  protected _toggleHandlerRef$: Function = this._reverseListHandler$();
+  // protected _toggleHanOdlerRef$: Function = this._reverseListHandler$();
 
   constructor(injector: Injector) { 
     super(injector);
     this.initRequest(this.pageConfig); 
   }
   onSelect(Entity: IRestaurants) {
-    this._navigateFromRoot(this._pageName, Entity);
+    //this._navigateFromRoot(this._pageName, Entity);
+    this.app.getRootNav().push(this._pageName, Entity);
   }
-  private _reverseListHandler$() {
+  /*private _reverseListHandler$() {
     
     return (event: boolean) => {
       
       const Entity = this.PageDataStore.get(this.pageConfig.fireConfig.scope);
       
       Entity.isReversed = event;
-      this._sortList(event, Entity.items);
+      this.sortList(event, Entity.items);
     }
+  }*/
+  toggleSort($event: boolean) {
+    const Entity = this.PageDataStore.get(this.pageConfig.fireConfig.scope);
+    Entity.isReversed = $event;
+    this._sortList($event, Entity.items);
   }
-  
+  private _sortList(isReversed: boolean, entityCollection: Array<IRestaurants>) {
+    asap.schedule(() => this.imagesLoader.updateImgs());
+    const sortingFn = (reversed= false) => (a: IRestaurants, b: IRestaurants) => reversed ? b.rating - a.rating : a.rating - b.rating;
+
+    return entityCollection.sort(sortingFn(isReversed));
+  }
   onIonSegmentSelect(e: string) {
     console.log("FROM onIonSegmentSelect => _images", this.imagesLoader._images);
     if (this._content.isScrolling || this.ionSegmentActivated) {
@@ -68,7 +79,7 @@ export class HomePage extends Base {
       const Entity = this.PageDataStore.get(scope);
       this._content.scrollTo(0, Entity.scrollPos).then(() => asap.schedule( () => this.ionSegmentActivated = !this.ionSegmentActivated, delay));
 
-      this.events.publish(APP_EV.SEGMENT_CHANGED, Entity.isReversed);
+      //this.events.publish(APP_EV.SEGMENT_CHANGED, Entity.isReversed);
       this.imagesLoader.updateImgs();
     };
 

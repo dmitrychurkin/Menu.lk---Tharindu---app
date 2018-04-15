@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { IonicPageModule } from 'ionic-angular';
+import { ImageLoaderModule, CartWidgetModule } from '../../components';
 import { HomePage } from './home';
-import { ImageLoaderModule, HeaderModule } from '../../components';
 
 
 @NgModule({
@@ -11,7 +11,7 @@ import { ImageLoaderModule, HeaderModule } from '../../components';
   imports: [
     IonicPageModule.forChild(HomePage),
     ImageLoaderModule,
-    HeaderModule
+    CartWidgetModule
   ]
 })
 export class HomePageModule {}

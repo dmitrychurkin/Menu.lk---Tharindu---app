@@ -27,6 +27,14 @@ page-home {
     }
   }*/
   // @include ion-img;
+  /*ion-header {
+    app-cart-widget {
+      margin-left: 7%;
+      @media all and (orientation: landscape) {
+        margin-left: 25%;
+      }
+    }
+  }*/
   ion-card-content {
     text-transform: capitalize;
     .title {

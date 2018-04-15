@@ -1,18 +1,19 @@
-import { BrowserModule } from '@angular/platform-browser';
+import { HttpClientModule } from '@angular/common/http';
 import { ErrorHandler, NgModule } from '@angular/core';
-import { IonicApp, IonicErrorHandler, IonicModule } from 'ionic-angular';
+import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { NativeAudio } from '@ionic-native/native-audio';
 import { SplashScreen } from '@ionic-native/splash-screen';
 import { StatusBar } from '@ionic-native/status-bar';
-import { NativeAudio } from '@ionic-native/native-audio';
-
-import { MyApp } from './app.component';
-import { ApiProvider, ShoppingCart, StorageProvider, AuthProvider }  from '../providers';
-import { HttpClientModule } from '@angular/common/http';
 import { IonicStorageModule } from '@ionic/storage';
-
 import { AngularFireModule } from 'angularfire2';
-import { AngularFireDatabaseModule, AngularFireDatabase } from 'angularfire2/database';
 import { AngularFireAuthModule } from 'angularfire2/auth';
+import { AngularFireDatabase, AngularFireDatabaseModule } from 'angularfire2/database';
+import { IonicApp, IonicErrorHandler, IonicModule } from 'ionic-angular';
+import { ApiProvider, AuthProvider, ShoppingCart, StorageProvider } from '../providers';
+import { MyApp } from './app.component';
+
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyDnyJhYizozTXovtuKzUCOrV5gL5mRDUIo",
@@ -29,6 +30,7 @@ const firebaseConfig = {
   ],
   imports: [
     BrowserModule,
+    BrowserAnimationsModule,
     IonicModule.forRoot(MyApp),
     HttpClientModule,
     IonicStorageModule.forRoot(),

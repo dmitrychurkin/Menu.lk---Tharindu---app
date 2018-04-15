@@ -1,54 +1,117 @@
-<!--
-  Generated template for the CartPage page.
-
-  See http://ionicframework.com/docs/components/#navigation for more info on
-  Ionic pages and navigation.
--->
 <ion-header>
+  <ion-navbar color="primary">
+    <div class="sintetic-grid">
+      <ng-container [ngSwitch]="titleDesc">
+        <div class="sintetic-grid title" #Title *ngSwitchCase="s.DELETE">
+          <ion-checkbox color="danger" #MasterCheckBox (ionChange)="onSelectAllChange($event)"></ion-checkbox>
+          <button ion-button color="danger" (tap)="onSelectAll(MasterCheckBox)" clear>Delete All</button>
+        </div>
+        <ion-title #Title class="title" *ngSwitchDefault>Cart</ion-title>
+      </ng-container>
 
-  <ion-navbar>
-    <ion-title>Cart</ion-title>
+      <app-cart-widget *ngIf="!isDeleteModeEnabled; else CartWidget"></app-cart-widget>
+      <ng-template #CartWidget>
+        <p text-uppercase ion-text color="danger" *ngIf="itemDeleteCounter > 0">
+          <strong>{{itemDeleteCounter}} selected</strong>
+        </p>
+      </ng-template>
+
+      <ion-buttons>
+        <ng-container *ngIf="itemDeleteCounter > 0; else ButtonMore">
+          <button (tap)="onDeleteItemSet()" color="danger" ion-button icon-only>
+            <ion-icon name="trash"></ion-icon>
+          </button>
+          <button (tap)="onCancelAll()" color="secondary" ion-button icon-only>
+            <ion-icon name="close-circle"></ion-icon>
+          </button>
+        </ng-container>
+        <ng-template #ButtonMore>
+          <button ion-button icon-only (tap)="presentPopover($event)">
+            <ion-icon name="more"></ion-icon>
+          </button>
+        </ng-template>
+      </ion-buttons>
+    </div>
   </ion-navbar>
 
 </ion-header>
 
 
-<ion-content padding>
-  <ion-list *ngFor="let Entity of Cart">
-    <ion-list-header>{{Entity.entityName}}</ion-list-header>
-    <ion-item *ngFor="let EntityOrder of Entity.orders">
-        <ion-item-group>
-          <ion-item-divider color="light">{{EntityOrder.type}} <ng-container *ngIf="EntityOrder.subhead">| <i>{{EntityOrder.subhead}}</i></ng-container></ion-item-divider>
-            <ion-item *ngFor="let Item of EntityOrder.items">
-              <ion-list>
-                  <ion-item-sliding>
-                    <ion-item>
-                      <ion-avatar item-start>
-                        <img [src]="Item.imageURL">
-                      </ion-avatar>
-                      <h2 text-capitalize>{{Item.name}}</h2>
-                      <p><ion-note>{{Item.description}}</ion-note></p>
-                      <ion-row>
-                        <ion-col><ion-note><span>{{currency[Item.currency]}}.</span>&nbsp;<span>{{Item.price}}</span></ion-note></ion-col>
-                        <ion-col>
-                          <ion-note>{{Item.size}}</ion-note>
-                        </ion-col>
-                      </ion-row>
-                    </ion-item>
-                    <ion-item-options side="left">
-                      <button ion-button color="primary">
-                        <ion-icon name="text"></ion-icon>
-                        Text
-                      </button>
-                      <button ion-button color="secondary">
-                        <ion-icon name="call"></ion-icon>
-                        Call
-                      </button>
-                    </ion-item-options>
-                  </ion-item-sliding>
-              </ion-list>
+<ion-content>
+  <ng-container *ngIf="Cart?.length > 0; else CartEmpty">
+    <ion-list *ngFor="let Entity of Cart" no-lines>
+      <ion-list-header text-uppercase sticky no-lines>
+        <h2>{{Entity.entityName}}</h2>
+      </ion-list-header>
+      <ion-item-group *ngFor="let EntityOrder of Entity.orders">
+        <ion-item-divider color="light" no-lines>{{EntityOrder.type}}
+          <ng-container *ngIf="EntityOrder.subhead">|
+            <i>{{EntityOrder.subhead}}</i>
+          </ng-container>
+        </ion-item-divider>
+        <ion-item-sliding *ngFor="let Item of EntityOrder.items">
+          <ion-item *ngIf="isDeleteModeEnabled; else DeleteDisabledTemplate">
+            <ion-checkbox color="danger" class="delete-mode" [(ngModel)]="Item.meta.itemMarkForDelete" [ngStyle]="animator" (ionChange)="onSelectSingle(Item, $event)"></ion-checkbox>
+            <ion-label>
+              <div class="label-wrapper">
+                <ion-avatar item-start>
+                  <img [src]="Item.imageURL">
+                </ion-avatar>
+
+                <div>
+                  <h2 text-capitalize>{{Item.name}}</h2>
+                  <h3 *ngIf="Item.quantity > 1">Ordered {{Item.quantity}} items</h3>
+                  <p class="item-desc">
+                    <ion-note>{{Item.description}}</ion-note>
+                  </p>
+                  <div class="notes-layout">
+                    <ion-note [style.width.%]="50">
+                      <span *ngIf="Item.quantity > 1">Total </span>
+                      <span>{{currency[Item.currency]}}.</span>&nbsp;
+                      <span>{{Item.price * Item.quantity}}</span>
+                    </ion-note>
+                    <ion-note>{{Item.size}}</ion-note>
+                  </div>
+                </div>
+              </div>
+            </ion-label>
+          </ion-item>
+          <ng-template #DeleteDisabledTemplate>
+            <ion-item>
+              <ion-avatar item-start>
+                <img [src]="Item.imageURL">
+              </ion-avatar>
+              <h2 text-capitalize>{{Item.name}}</h2>
+              <h3 *ngIf="Item.quantity > 1">Ordered {{Item.quantity}} items</h3>
+              <p class="item-desc">
+                <ion-note>{{Item.description}}</ion-note>
+              </p>
+              <div class="notes-layout">
+                <ion-note [style.width.%]="50">
+                  <span *ngIf="Item.quantity > 1">Total </span>
+                  <span>{{currency[Item.currency]}}.</span>&nbsp;
+                  <span>{{Item.price * Item.quantity}}</span>
+                </ion-note>
+                <ion-note>{{Item.size}}</ion-note>
+              </div>
             </ion-item>
-        </ion-item-group>
-    </ion-item>
-  </ion-list>
+          </ng-template>
+
+          <ion-item-options side="left">
+            <button (tap)="onDeleteItem(Item)" ion-button color="danger">
+              <ion-icon name="trash"></ion-icon>
+              Delete
+            </button>
+          </ion-item-options>
+        </ion-item-sliding>
+      </ion-item-group>
+    </ion-list>
+  </ng-container>
+  <ng-template #CartEmpty>
+    <div class="sintetic-grid" [style.height.%]="100">
+      <ion-note text-center padding [style.width.%]="100">
+        <h1>No items here yet...</h1>
+      </ion-note>
+    </div>
+  </ng-template>
 </ion-content>

@@ -1,7 +1,7 @@
-import { Injectable } from "@angular/core";
 import { HttpClient, HttpRequest } from "@angular/common/http";
-import { AngularFireDatabase } from "angularfire2/database";
+import { Injectable } from "@angular/core";
 import { Reference } from "@firebase/database-types";
+import { AngularFireDatabase } from "angularfire2/database";
 import { Observable } from "rxjs/Observable";
 import { IApiConfig, IFireConfig, IRestaurants } from "../interfaces";
 
@@ -15,11 +15,12 @@ export class ApiProvider {
 
       return () => this.fetch(fireConfig);
     }
-    const { method= 'GET', url, responseType= 'json' } = httpConfig;
-    let httpRequest = new HttpRequest(method, url, { responseType });
+    const { method= 'GET', url } = httpConfig;
+    let httpRequest = new HttpRequest(method, url, httpConfig);
 
     return () => this.http.request(httpRequest);
   }
+
   fetch(
     { scope, 
       childRef, 
@@ -34,5 +35,6 @@ export class ApiProvider {
     }: IFireConfig): Observable<IRestaurants[]> {
     return this.afDb.list<IRestaurants>(scope, queryFn === null ? null : queryFn(childRef, batchSize, lastKey)).valueChanges();
   }
+  
 }
 

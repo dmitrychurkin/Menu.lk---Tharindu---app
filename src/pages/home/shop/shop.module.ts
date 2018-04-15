@@ -1,7 +1,7 @@
 import { NgModule } from "@angular/core";
-import { ShopPage } from "./shop";
 import { IonicPageModule } from "ionic-angular";
-import { ImageLoaderModule, HeaderModule } from "../../../components";
+import { CartWidgetModule, ImageLoaderModule } from "../../../components";
+import { ShopPage } from "./shop";
 
 
 
@@ -10,6 +10,6 @@ import { ImageLoaderModule, HeaderModule } from "../../../components";
   imports: [ 
     IonicPageModule.forChild(ShopPage), 
     ImageLoaderModule,
-    HeaderModule ]
+    CartWidgetModule ]
 })
 export class ShopPageModule {} 

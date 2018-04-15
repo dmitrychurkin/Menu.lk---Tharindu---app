@@ -1,5 +1,15 @@
 <ion-header>
-  <app-header></app-header>
+  <ion-navbar no-border-bottom>
+    <ion-grid>
+      <ion-row>
+          <ion-title>Menu.lk</ion-title>
+      
+          <ion-toggle color="secondary" [ngModel]="PageDataStore.get(pageConfig.fireConfig.scope)?.isReversed" (ngModelChange)="toggleSort($event)"></ion-toggle>
+          
+          <app-cart-widget></app-cart-widget>
+      </ion-row>
+    </ion-grid>
+  </ion-navbar>
   <ion-toolbar no-border-top>
     <ion-segment (ngModelChange)="onIonSegmentSelect($event)" [ngModel]="pageConfig.fireConfig.scope">
       <ion-segment-button [disabled]="pageConfig.fireConfig.scope === 'catering' && ionSegmentActivated" value="restaurants">restaurants</ion-segment-button>

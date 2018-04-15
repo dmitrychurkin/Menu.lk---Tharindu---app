@@ -5,17 +5,17 @@ import { Storage } from "@ionic/storage";
 @Injectable()
 export class StorageProvider {
 
-  errorMessage = (err?: any) => `${err || 'Error'} occured`;
-  
+  errorMessage = (err?: any) => `${err ? (err.message || err) : 'Error occured'}`;
+
   constructor(private _toastCtrl: ToastController,
               private _storage: Storage) {
   //test only 
       
-    _storage.ready()
+   /* _storage.ready()
     .then(() => {
       console.log("Clean Storage");
       _storage.remove('ShoppingCart');
-    });
+    });*/
   }
 
   get storage(): Promise<LocalForage> {
@@ -43,10 +43,10 @@ export class StorageProvider {
                 .catch(this._errorHandler.bind(this));
   }
   private _errorHandler(err: any) {
-    let showToast = this._configToast(this.errorMessage());
+    let showToast = this.configToast(this.errorMessage(err));
     return showToast();
   }
-  private _configToast(message: string, showCloseButton= false, duration= 3000) {
+  configToast(message: string, showCloseButton= false, duration= 3000) {
     let toast = this._toastCtrl.create({
       message, duration, showCloseButton
     });
