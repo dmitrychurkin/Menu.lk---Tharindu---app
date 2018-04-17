@@ -19,6 +19,7 @@ export class AuthProvider {
   // }
   
   signIn(flag: number) {
+    this.isLoginPageNeedShow = false;
     switch (flag) {
       case Providers.GOOGLE: {
         return this.afAuth

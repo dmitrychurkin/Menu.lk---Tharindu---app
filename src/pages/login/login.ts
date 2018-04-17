@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { IonicPage, NavController, AlertController } from 'ionic-angular';
 import { AuthProvider } from '../../providers';
+import { User } from 'firebase/app';
 // import { Subscription } from 'rxjs/Subscription';
 
 /**
@@ -40,7 +41,7 @@ export class LoginPage {
       upcase: true
     }
   ];
-  isPageNeedShow = this.authProvider.isLoginPageNeedShow;
+  // isPageNeedShow = this.authProvider.isLoginPageNeedShow;
   // private _sub: Subscription;
   
   constructor(
@@ -48,10 +49,21 @@ export class LoginPage {
     alertCtrl: AlertController,
     public authProvider: AuthProvider) {
 
-      authProvider.afAuth
-                  .auth
-                  .getRedirectResult()
-                  .then((redirectResult: any) => {
+      authProvider.user
+                  .subscribe((user: User) => {
+                    console.log("LOGIN PAGE USER => ", user);
+                    if (user) {
+                      authProvider.goBack(navCtrl);
+                    }
+                  }, () => {
+                    authProvider.isLoginPageNeedShow = true;
+                    alertCtrl.create({ 
+                      title: 'Authentication error',
+                      subTitle: 'Error occured, please try sign in again',
+                      buttons: ['Dismiss']
+                    }).present();
+                  });
+                  /*.then((redirectResult: any) => {
                     console.log("REDIRECT RESULT => ", redirectResult);
                     if (redirectResult.user) {
                       authProvider.goBack(navCtrl);
@@ -64,6 +76,6 @@ export class LoginPage {
                       subTitle: 'Error occured, please try sign in again',
                       buttons: ['Dismiss']
                     }).present();
-                  });
+                  });*/
     }
 }

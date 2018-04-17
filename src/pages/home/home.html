@@ -1,14 +1,20 @@
 <ion-header>
   <ion-navbar no-border-bottom>
-    <ion-grid>
-      <ion-row>
-          <ion-title>Menu.lk</ion-title>
-      
-          <ion-toggle color="secondary" [ngModel]="PageDataStore.get(pageConfig.fireConfig.scope)?.isReversed" (ngModelChange)="toggleSort($event)"></ion-toggle>
-          
-          <app-cart-widget></app-cart-widget>
-      </ion-row>
-    </ion-grid>
+    <!-- <ion-grid>
+      <ion-row> -->
+        <div class="head-layout">
+          <div class="head-item-wrapper">
+            <ion-title [style.height.%]="100" class="head-item">Menu.lk</ion-title>
+          </div>
+          <div class="head-item-wrapper">
+            <ion-toggle class="head-item" color="secondary" [ngModel]="PageDataStore.get(pageConfig.fireConfig.scope)?.isReversed" (ngModelChange)="toggleSort($event)"></ion-toggle>
+          </div>
+          <div class="head-item-wrapper">
+            <app-cart-widget [style.height.%]="100" class="head-item"></app-cart-widget>
+          </div>
+        </div>
+      <!-- </ion-row>
+    </ion-grid> -->
   </ion-navbar>
   <ion-toolbar no-border-top>
     <ion-segment (ngModelChange)="onIonSegmentSelect($event)" [ngModel]="pageConfig.fireConfig.scope">

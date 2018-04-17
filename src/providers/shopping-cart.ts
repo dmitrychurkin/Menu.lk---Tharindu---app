@@ -1,5 +1,4 @@
 import { Injectable } from "@angular/core";
-import { NativeAudio } from "@ionic-native/native-audio";
 import { Events, Platform } from "ionic-angular";
 import { Cart, IEntityInCart, IMenuItem, IMenuType, IOrder } from "../interfaces";
 import { APP_EV, CART_ACTION_FLAGS, DATABASE_TOKENS, MAX_CART_ITEMS } from "../pages/pages.constants";
@@ -13,8 +12,7 @@ export class ShoppingCart {
   constructor(
     private _events: Events,
     private _plt: Platform,
-    private _storageProvider: StorageProvider,
-    private _nativeAudio: NativeAudio) { }
+    private _storageProvider: StorageProvider) { }
 
   get CartEntity() {
     return this._storageProvider.getItem(DATABASE_TOKENS.SHOPPING_CART)
@@ -209,13 +207,7 @@ export class ShoppingCart {
   private _playSound(soundPath?: string) {
     if (!soundPath) return;
     const SoundFilePath = `assets/sounds/${soundPath}`;
-    if (this._plt.is('mobileweb')) {
-      return new Audio(SoundFilePath).play();
-    }
-    return this._nativeAudio.preloadSimple('addToCartTone', SoundFilePath)
-      .then(() =>
-        this._nativeAudio.play('addToCartTone')
-      );
+    return new Audio(SoundFilePath).play();
   }
 
   private _toastMessageHandler(errMessage: string) {

@@ -70,7 +70,7 @@ export class HomePage extends Base {
     return entityCollection.sort(sortingFn(isReversed));
   }
   onIonSegmentSelect(e: string) {
-    console.log("FROM onIonSegmentSelect => _images", this.imagesLoader._images);
+
     if (this._content.isScrolling || this.ionSegmentActivated) {
       return;
     }
@@ -79,7 +79,6 @@ export class HomePage extends Base {
       const Entity = this.PageDataStore.get(scope);
       this._content.scrollTo(0, Entity.scrollPos).then(() => asap.schedule( () => this.ionSegmentActivated = !this.ionSegmentActivated, delay));
 
-      //this.events.publish(APP_EV.SEGMENT_CHANGED, Entity.isReversed);
       this.imagesLoader.updateImgs();
     };
 
@@ -113,7 +112,7 @@ export class HomePage extends Base {
         Entity.isFinished = true;
         return;
       }
-        
+
       Entity.lastKey  = resultSet.slice(-1)[0]._id;
 
       const newSet =  (resultSet.length < this.pageConfig.fireConfig.batchSize) ? resultSet.slice(0) : resultSet.slice(0, resultSet.length - 1);
@@ -160,13 +159,15 @@ export class HomePage extends Base {
       infiniteScroll.complete();
       return;
     }
-    this.pageConfig.fireConfig.lastKey = Entity.lastKey;
-    this.getResource( Object.assign({}, this.pageConfig, { withPreloader: false }) )
-        .then( () => {
-          infiniteScroll.complete();
-          //console.log("HUI")
-        });
-        //.catch( err => console.log("DEBUG ERROR => err", err));
+    
+    const { fireConfig: { scope, batchSize, childRef }, job } = this.pageConfig;
+    const pageConfig: IPageConfig = {
+      fireConfig: { scope, batchSize, childRef, lastKey: Entity.lastKey },
+      withPreloader: false,
+      job
+    };
+    this.getResource( pageConfig )
+        .then( () => infiniteScroll.complete());
   }
 
   

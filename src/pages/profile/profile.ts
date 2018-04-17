@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { IonicPage, NavController, NavParams } from 'ionic-angular';
+import { AuthProvider } from '../../providers';
 
 /**
  * Generated class for the ProfilePage page.
@@ -15,7 +16,23 @@ import { IonicPage, NavController, NavParams } from 'ionic-angular';
 })
 export class ProfilePage {
 
-  constructor(public navCtrl: NavController, public navParams: NavParams) {
+  userStatus: Promise<any>;
+
+  constructor(
+    public navCtrl: NavController, 
+    public navParams: NavParams,
+    public authProvider: AuthProvider) {}
+
+  onSignOut() {
+      this.authProvider
+        .afAuth
+        .auth
+        .signOut()
+        .then((res: any) => {
+          console.log('RESULT AFTER SIGN OUT => ', res);
+          this.authProvider.goToLoginPage(this.navCtrl);
+        });
+
   }
 
   ionViewDidLoad() {
