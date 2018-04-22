@@ -35,7 +35,7 @@ export class ShoppingCart {
       const EntireDataSet = CartEntity.CART;
       
       let EntityInCart = EntireDataSet.find(({ id }: IEntityInCart) => id === Order.id);
-      const MenuItemTemplate = { ...Order.menu.item, quantity: Order.menu.quantity };
+      const MenuItemTemplate = { ...Order.menu.item, quantity: Order.menu.quantity, userNotes: Order.menu.userNotes };
       const MenuTypeTemplate = { type: Order.menu.type, subhead: Order.menu.subhead, items: [MenuItemTemplate] };
       if (!EntityInCart) {
         EntityInCart = {
@@ -62,11 +62,20 @@ export class ShoppingCart {
         if (!MenuType) {
           EntityInCart.orders.push(MenuTypeTemplate);
         } else {
-          let MenuItem = MenuType.items.find(({ _id }: IMenuItem) => _id === Order.menu.item._id);
+          let MenuItem = MenuType.items.find(({ _id, userNotes }: IMenuItem) => {
+            const parsedId = _id.split('_')[0];
+            return parsedId === Order.menu.item._id && userNotes === Order.menu.userNotes;
+          });
           if (!MenuItem) {
             MenuType.items.push(MenuItemTemplate);
           } else {
-            MenuItem.quantity += Order.menu.quantity;
+            if (!Order.menu.userNotes || MenuItem.userNotes === Order.menu.userNotes) {
+              MenuItem.quantity += Order.menu.quantity;
+            }else {
+              MenuItemTemplate._id += ('_' + Date.now());
+              MenuType.items.push(MenuItemTemplate);
+            }
+            
           }
         }
       }

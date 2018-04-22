@@ -35,16 +35,8 @@ page-home {
       }
     }
   }*/
-  .head-layout {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    .head-item-wrapper {
-      width: 33.3333%;
-      .head-item {
-        margin: 0 auto
-      }
-    }
+  ion-navbar {
+    position: relative;
   }
   ion-card-content {
     text-transform: capitalize;

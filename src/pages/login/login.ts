@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
-import { IonicPage, NavController, AlertController } from 'ionic-angular';
-import { AuthProvider } from '../../providers';
 import { User } from 'firebase/app';
+import { AlertController, IonicPage, NavController } from 'ionic-angular';
+import { AuthProvider } from '../../providers';
 // import { Subscription } from 'rxjs/Subscription';
 
 /**

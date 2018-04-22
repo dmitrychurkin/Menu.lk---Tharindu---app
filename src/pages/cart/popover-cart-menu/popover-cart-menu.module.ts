@@ -8,6 +8,6 @@ import { PopoverCartMenu } from './popover-cart-menu';
   ],
   imports: [
     IonicPageModule.forChild(PopoverCartMenu)
-  ],
+  ]
 })
-export class CartPageModule {}
+export class PopoverCartMenuModule {}

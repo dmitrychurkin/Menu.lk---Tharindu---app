@@ -1,0 +1,30 @@
+<ion-header>
+  <ion-navbar>
+    <ion-title>Menu.lk</ion-title>
+  </ion-navbar>
+</ion-header>
+<ion-content padding>
+  <ion-grid fixed>
+    <ion-row justify-content-center align-items-center nowrap>
+      <ion-col col-auto>
+        <h2 text-capitalize>quick order</h2>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col>
+        <ion-list>
+          <ion-item *ngFor="let inputElem of templateData">
+            <ion-label color="primary" floating>
+              <ion-icon name="{{inputElem.icon}}"></ion-icon>
+              <ion-note text-capitalize>{{inputElem.label}}</ion-note>
+            </ion-label>
+            <ion-input [type]="inputElem.type"></ion-input>
+          </ion-item>
+        </ion-list>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+  <div class="btn-holder">
+    <button class="btn-order-now" ion-button color="dark" outline round>order now</button>
+  </div>
+</ion-content>

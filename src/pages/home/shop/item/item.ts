@@ -1,43 +1,50 @@
 import { Component } from "@angular/core";
 import { IonicPage, NavParams } from "ionic-angular";
-import { IMG_DATA_FIELD_TOKEN } from "../../../pages.constants";
+import { IMG_DATA_FIELD_TOKEN, ANGULAR_ANIMATION_OPACITY } from "../../../pages.constants";
+import { ShoppingCart } from "../../../../providers";
+import { IOrder } from "../../../../interfaces";
 
 @IonicPage()
 @Component({
   selector: 'page-item',
-  templateUrl: 'item.html'
+  templateUrl: 'item.html',
+  animations: ANGULAR_ANIMATION_OPACITY
 })
 export class ItemPage {
   
   backgroundImage: string;
-  userNotes = '';
-  itemCount = 1;
-  
+  //userNotes = '';
+  //itemCount = 1;
+  order: IOrder = this.navParams.data;
 
-  constructor(public navParams: NavParams) {}
+  constructor(public navParams: NavParams, public cart: ShoppingCart) {}
   
-  
+  addToCart() {
+    //const OrderStr = JSON.stringify(this.order);
+    //const OrderClone: IOrder = JSON.parse(OrderStr);
+    //delete OrderClone.menu.item.description;
+    this.cart.addToCart(this.order);
+  }
   ionViewDidLoad() {
-    console.log(this.navParams.get('_id'));
-    this.backgroundImage = `url(${this.navParams.get('menu').item[IMG_DATA_FIELD_TOKEN]})`;
+    this.backgroundImage = `url(${this.order.menu.item[IMG_DATA_FIELD_TOKEN]})`;
   }
   onInc() {
-    this.itemCount++;
+    this.order.menu.quantity++;
   }
   onDec() {
-    if (this.itemCount > 1) {
-      this.itemCount--;
+    if (this.order.menu.quantity > 1) {
+      this.order.menu.quantity--;
     }
   }
   toggleActive(e: any) {
-    console.log(e);
+    
     let input: HTMLInputElement = e.target;
     if (input) {
       let inputContainerClassList = input.parentElement.classList;
       let isActive = inputContainerClassList.contains('active');
-      if (isActive && this.userNotes.length > 0) {
+      if (isActive && this.order.menu.userNotes.length > 0) {
         inputContainerClassList.add('dirty');
-      }else if (isActive && this.userNotes.length == 0) {
+      }else if (isActive && this.order.menu.userNotes.length == 0) {
         inputContainerClassList.remove('dirty');
       }
       inputContainerClassList.toggle('active');

@@ -1,9 +1,10 @@
-import { Component, Injector } from '@angular/core';
-import { InfiniteScroll, IonicPage } from 'ionic-angular';
+import { Component, Injector, ViewChild } from '@angular/core';
+import { InfiniteScroll, IonicPage, Navbar, Toggle } from 'ionic-angular';
 import { asap } from 'rxjs/scheduler/asap';
 import { IPageConfig, IRestaurants } from '../../interfaces';
 import Base from '../page.base.class';
-import { /*APP_EV,*/ APP_SHOP_PAGE } from '../pages.constants';
+import { APP_SHOP_PAGE } from '../pages.constants';
+
 
 
 
@@ -33,10 +34,14 @@ export class HomePage extends Base {
   // foodType = 'restaurants';
   //Restaurants = new ListEntity;
   //Caterings = new ListEntity;
-  
+  @ViewChild(Navbar) navBar: Navbar;
+  @ViewChild(Toggle) ionToggle: Toggle;
+  toggleLeft: number | string;
+  toggleTop: number | string;
+  togglePos: string;
+
   ionSegmentActivated = false;
   PageDataStore = new Map<string, ListEntity>();
-  private readonly _pageName = APP_SHOP_PAGE;
 
   // protected _toggleHanOdlerRef$: Function = this._reverseListHandler$();
 
@@ -46,7 +51,22 @@ export class HomePage extends Base {
   }
   onSelect(Entity: IRestaurants) {
     //this._navigateFromRoot(this._pageName, Entity);
-    this.app.getRootNav().push(this._pageName, Entity);
+    this.app.getRootNav().push(APP_SHOP_PAGE, Entity);
+  }
+  private get _getToggleLeft() {
+    const width = this.platform.width();
+    const height = this.platform.height();
+   
+    const pltWidth = this.isOrientationPortrait ? Math.min(width, height) : Math.max(width, height); 
+
+    return `${pltWidth / 2 - this.ionToggle.getNativeElement().offsetWidth / 2}px`;
+  }
+  ngAfterViewInit() {
+    this.toggleTop = `${(this.navBar.getNativeElement().offsetHeight / 2) - (this.ionToggle.getNativeElement().offsetHeight / 2)}px`;
+    this.toggleLeft = this._getToggleLeft;
+    this.screenOrientation.onChange().subscribe(() => this.toggleLeft = this._getToggleLeft);
+    
+    super.ngAfterViewInit();
   }
   /*private _reverseListHandler$() {
     
@@ -56,6 +76,27 @@ export class HomePage extends Base {
       
       Entity.isReversed = event;
       this.sortList(event, Entity.items);
+    }
+  }*/
+  /*private _setToggleInitProps() {
+    return this.cartWidget
+      .cartWidgetReady
+      .then(() => 
+        this.togglePositionHandler()
+      );
+  }
+  private _setTogglePositionHandler() {
+
+    return () => {
+      const windowWidth = this.platform.width();
+      const toggleElement: HTMLElement = this.ionToggle.getNativeElement();
+      if (this.cartWidget.itemTotal > 0) {
+        this.toggleLeft = `${(windowWidth / 2) - (toggleElement.offsetWidth / 2)}px`;
+        //this.togglePos = 'absolute';
+      }else {
+        this.toggleLeft = 0;
+        //this.togglePos = 'static';
+      }
     }
   }*/
   toggleSort($event: boolean) {

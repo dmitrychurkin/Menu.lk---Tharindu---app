@@ -1,20 +1,22 @@
-import { Component, ElementRef, Renderer2, ViewChild } from '@angular/core';
-import { Checkbox, Events, IonicPage, List, NavController, PopoverController } from 'ionic-angular';
+import { Component, ElementRef, Renderer2, ViewChild, AfterViewChecked } from '@angular/core';
+import { Checkbox, Events, IonicPage, List, NavController, PopoverController, Content } from 'ionic-angular';
 import { asap } from 'rxjs/Scheduler/asap';
 import { CartWidgetComponent } from '../../components';
 import { Cart, IEntityInCart, IMenuItem } from '../../interfaces';
 import { IDatasetIteratorLambdaObjectInfo, ShoppingCart, StorageProvider } from '../../providers';
-import { APP_EV, Currency, DATABASE_TOKENS, PopoverCartMenuEventFlags } from '../pages.constants';
+import { APP_EV, Currency, DATABASE_TOKENS, PopoverCartMenuEventFlags, APP_QUICK_ORDER_PAGE, ANGULAR_ANIMATION_OPACITY } from '../pages.constants';
 import { PopoverCartMenu } from './popover-cart-menu/popover-cart-menu';
 
 
 @IonicPage()
 @Component({
   selector: 'page-cart',
-  templateUrl: 'cart.html'
+  templateUrl: 'cart.html',
+  animations: ANGULAR_ANIMATION_OPACITY
 })
-export class CartPage {
-
+export class CartPage implements AfterViewChecked {
+  @ViewChild('QuckOrder', { read: ElementRef }) areaQuickOrder: ElementRef;
+  @ViewChild(Content) content: Content;
   @ViewChild('Title', { read: ElementRef }) title: ElementRef;
   @ViewChild('MasterCheckBox') masterCheckBox: Checkbox;
   @ViewChild(List) list: List;
@@ -29,6 +31,8 @@ export class CartPage {
   s = PopoverCartMenuEventFlags;
 
   private _deleteModeFnCallback: Function;
+  buttonPosition: string;
+  private _isQuickOrderPageActivated: boolean;
 
   constructor(
     private _navCtrl: NavController,
@@ -38,6 +42,24 @@ export class CartPage {
     private _shoppingCartCtrl: ShoppingCart,
     private _storageProvider: StorageProvider) {
     this._getItems();
+  }
+  onQuickOrderPage() {
+    this.list.closeSlidingItems();
+    this._isQuickOrderPageActivated = true;
+    this._navCtrl.push(APP_QUICK_ORDER_PAGE);
+  }
+  ngAfterViewChecked() {
+    asap.schedule(() => this._setPositionBtn());
+  }
+  private _setPositionBtn() {
+    try {
+      if (this.content && this.areaQuickOrder && this.list && this.content.contentHeight > 0) {
+        const btnHeight = this.areaQuickOrder.nativeElement.offsetHeight;
+        const listHeight = this.list.getNativeElement().offsetHeight;
+        this.buttonPosition = (listHeight + btnHeight + 100 < this.content.contentHeight) ?
+            'absolute' : 'static';
+      }
+    }catch(err) {}
   }
 
   onSelectSingle(Item: IMenuItem, $event: Checkbox) {
@@ -108,7 +130,9 @@ export class CartPage {
   deleteModeHandler() {
     return (popoverFlag: PopoverCartMenuEventFlags) => {
 
-      this._renderer2.addClass(this.title.nativeElement, 'remove');
+      if (!this._isQuickOrderPageActivated) {
+        this._renderer2.addClass(this.title.nativeElement, 'remove');
+      }
 
       switch (popoverFlag) {
         case this.s.DELETE: {
@@ -145,7 +169,7 @@ export class CartPage {
     this._popoverCtrl.create('PopoverCartMenu')
       .present({ ev: $event });
   }
-
+  
   ionViewDidLoad() {
     this.cartWidget.buttonDisabled = true;
 
@@ -153,6 +177,10 @@ export class CartPage {
       this._deleteModeFnCallback = this.deleteModeHandler();
       this._events.subscribe(APP_EV.DELETE_CART_MODE, this._deleteModeFnCallback);
     }
+  }
+
+  ionViewWillEnter() {
+    this._isQuickOrderPageActivated = false;
   }
 
   ionViewWillLeave() {

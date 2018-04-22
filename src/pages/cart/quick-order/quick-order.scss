@@ -1,0 +1,14 @@
+page-quick-order {
+  .btn-holder {
+    display: flex;
+    justify-content: center;
+    margin-top: 50px;
+    width: 100%;
+    left: 0;
+    .btn-order-now {
+      width: 80%;
+      height: 50px;
+      font-size: 2rem;
+    }
+  }
+}

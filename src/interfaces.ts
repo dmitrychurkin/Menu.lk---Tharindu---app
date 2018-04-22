@@ -24,10 +24,11 @@ export interface IMenuType {
 
 export interface IMenuItem extends Base {
   size?: string;
-  description: string;
+  description?: string;
   currency: 'US' | 'LAKR';
   price: number | string;
   quantity?: number;
+  userNotes?: string;
   meta?: {
     itemMarkForDelete: boolean;
   }
@@ -43,12 +44,13 @@ export interface IEntityInCart {
 export interface IOrder {
   id: string;
   entityName: string;
-  entityImage: DataURL;
+  // entityImage: DataURL;
   menu: {
     type: string;
     subhead?: string;
     item: IMenuItem;
     quantity: number;
+    userNotes?: string;
   }
 }
 

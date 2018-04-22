@@ -35,8 +35,8 @@
               <h1>{{menuType.type}}</h1>
               <h3><i>{{menuType.subhead}}</i></h3>
             </ion-list-header>
-            <ion-item #target *ngFor="let menuItem of menuType.items">
-                <ion-thumbnail item-start (tap)="onSelect(menuItem, menuType)">
+            <ion-item #target *ngFor="let menuItem of menuType.items" (tap)="onTapItem($event, menuItem, menuType)">
+                <ion-thumbnail item-start>
                         <!-- <span #imgContainer class="image-container font-hidden">-->
                           <!-- <img [src]="menuItem.imageUrl"> -->
                           <!-- <div class="mock-image-container">
@@ -47,7 +47,7 @@
                         </span>-->
                     <img-loader [src]="menuItem.imageURL || ''" [height]="80" [icon-hidden]="true" [target]="target"></img-loader>
                 </ion-thumbnail>
-                <div (tap)="onSelect(menuItem, menuType)">
+                <!-- <div (tap)="onSelect(menuItem, menuType)"> -->
                   <h2 text-capitalize>{{menuItem.name}}</h2>
                   <p><ion-note>{{menuItem.description}}</ion-note></p>
                   <ion-row>
@@ -56,8 +56,8 @@
                       <ion-note>{{menuItem.size}}</ion-note>
                     </ion-col>
                   </ion-row>
-                </div>
-                <button (click)="addToCart(menuItem, menuType)" [disabled]="!isCanOrder" ion-button clear item-end icon-left>Add<span>&nbsp;</span><ion-icon name="cart"></ion-icon></button>
+                <!-- </div> -->
+                <button class="btn-addToCart" [disabled]="!isCanOrder" ion-button clear item-end icon-left>Add<span>&nbsp;</span><ion-icon name="cart"></ion-icon></button>
             </ion-item>
         </ion-list>
       </div>

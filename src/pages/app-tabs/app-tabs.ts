@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { IonicPage, NavController } from 'ionic-angular';
 import { AuthProvider } from '../../providers';
+import { APP_HOME_PAGE, APP_PROFILE_PAGE, APP_SEARCH_PAGE } from '../pages.constants';
 
 /**
  * Generated class for the AppTabsPage tabs.
@@ -16,9 +17,9 @@ import { AuthProvider } from '../../providers';
 })
 export class AppTabsPage {
 
-  homeRoot = 'HomePage'
-  searchRoot = 'SearchPage'
-  profileRoot = 'ProfilePage'
+  homeRoot = APP_HOME_PAGE;
+  searchRoot = APP_SEARCH_PAGE;
+  profileRoot = APP_PROFILE_PAGE;
 
   isUserSigned = false;
 

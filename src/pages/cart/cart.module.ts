@@ -10,6 +10,6 @@ import { CartPage } from './cart';
   imports: [
     IonicPageModule.forChild(CartPage),
     CartWidgetModule
-  ],
+  ]
 })
 export class CartPageModule {}

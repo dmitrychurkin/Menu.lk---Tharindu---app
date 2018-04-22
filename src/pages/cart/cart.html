@@ -62,7 +62,7 @@
                   <h2 text-capitalize>{{Item.name}}</h2>
                   <h3 *ngIf="Item.quantity > 1">Ordered {{Item.quantity}} items</h3>
                   <p class="item-desc">
-                    <ion-note>{{Item.description}}</ion-note>
+                    <ion-note>{{Item.userNotes}}</ion-note>
                   </p>
                   <div class="notes-layout">
                     <ion-note [style.width.%]="50">
@@ -84,7 +84,7 @@
               <h2 text-capitalize>{{Item.name}}</h2>
               <h3 *ngIf="Item.quantity > 1">Ordered {{Item.quantity}} items</h3>
               <p class="item-desc">
-                <ion-note>{{Item.description}}</ion-note>
+                <ion-note>{{Item.userNotes}}</ion-note>
               </p>
               <div class="notes-layout">
                 <ion-note [style.width.%]="50">
@@ -114,4 +114,11 @@
       </ion-note>
     </div>
   </ng-template>
+  <ion-grid #QuckOrder [@animator]="'in'" *ngIf="Cart?.length > 0 && !isDeleteModeEnabled" [ngStyle]="{ position: buttonPosition, bottom: '50px' }" fixed>
+      <ion-row nowrap justify-content-center>
+        <ion-col col-auto align-self-center>
+            <button class="btn-quick-order" (tap)="onQuickOrderPage()" ion-button round icon-left>quick order<span>&nbsp;</span><ion-icon name="archive"></ion-icon></button>
+        </ion-col>
+      </ion-row>
+  </ion-grid>
 </ion-content>

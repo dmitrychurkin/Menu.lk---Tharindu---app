@@ -8,6 +8,6 @@ import { SearchPage } from './search';
   ],
   imports: [
     IonicPageModule.forChild(SearchPage),
-  ],
+  ]
 })
 export class SearchPageModule {}

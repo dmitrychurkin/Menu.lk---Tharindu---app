@@ -1,9 +1,20 @@
+import {
+  trigger,
+  state,
+  style,
+  animate,
+  transition
+} from '@angular/animations';
 //Constants for getting type references
 export const APP_TABS_PAGE = 'AppTabsPage';
+export const APP_SEARCH_PAGE = 'SearchPage';
+export const APP_PROFILE_PAGE = 'ProfilePage';
+export const APP_HOME_PAGE = 'HomePage';
 export const APP_SHOP_PAGE = 'ShopPage';
 export const APP_ITEM_PAGE = 'ItemPage';
-export const LOGIN_PAGE = 'LoginPage';
-export const CART_PAGE = 'CartPage';
+export const APP_LOGIN_PAGE = 'LoginPage';
+export const APP_CART_PAGE = 'CartPage';
+export const APP_QUICK_ORDER_PAGE = 'QuickOrder';
 export enum Currency { US = "$", LAKR = "RS" };
 export const IMG_DATA_FIELD_TOKEN = 'imageURL';
 export enum CART_ACTION_FLAGS { ADD, DELETE };
@@ -14,6 +25,13 @@ export enum APP_EV {
 export enum DATABASE_TOKENS { SHOPPING_CART = 'ShoppingCart' };
 export const MAX_CART_ITEMS = 25;
 export enum PopoverCartMenuEventFlags { DELETE = 'D', CANCEL = 'X' };
+export const ANGULAR_ANIMATION_OPACITY = [
+  trigger('animator', [
+    state('void', style({ opacity: 0 })),
+    state('in', style({ opacity: 1 })),
+    transition('void <=> *', animate('1s ease-out'))
+  ])
+]
 /** Tests only */
 /*let urlNormalizer = (img: string, isShop: number | boolean = false) => `assets/imgs/${isShop ? 'shops/' : ''}${img}`;
 export let mockBackendCall: (...args: Array<any>) => Promise<any> = (job: (...args: Array<any>) => any, needSuccess= true, delay= 1000) => {

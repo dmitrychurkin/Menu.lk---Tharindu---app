@@ -100,4 +100,5 @@
         </host>
     </universal-links>
     <plugin name="cordova-plugin-whitelist" spec="^1.3.3" />
+    <plugin name="cordova-plugin-screen-orientation" spec="^3.0.1" />
 </widget>

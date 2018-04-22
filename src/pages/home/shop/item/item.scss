@@ -11,6 +11,7 @@ page-item {
   }
   @include sub-page-layout($selector-name: item);
   .image-holder {
+    filter: blur(3px);
     position: relative;
     top: 0;
   }
@@ -124,7 +125,6 @@ page-item {
     height: 68px;
     .user-notes {
       font-style: italic;
-      animation: appear 1s;
     }
   }
   .add-to-cart {
@@ -136,13 +136,5 @@ page-item {
       height: 50px;
       font-size: 2rem;
     }
-  }
-}
-@keyframes appear {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
   }
 }

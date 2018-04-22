@@ -1,7 +1,8 @@
 import { AfterViewInit, Injector, Renderer2, ViewChild } from "@angular/core";
-import { AlertController, App, Content, Events, Loading, LoadingController, NavParams } from "ionic-angular";
+import { AlertController, App, Content, Events, Loading, LoadingController, NavParams, Platform } from "ionic-angular";
 import { IPageConfig, IRestaurants } from "../interfaces";
 import { ApiProvider, ImageLoader } from "../providers";
+import { ScreenOrientation } from "@ionic-native/screen-orientation";
 
 
 export default class Base implements AfterViewInit {
@@ -24,6 +25,8 @@ export default class Base implements AfterViewInit {
   imagesLoader: ImageLoader;
   apiProvider: ApiProvider;
   events: Events;
+  screenOrientation: ScreenOrientation;
+  platform: Platform;
   
   // new page push props
   // protected readonly _pageName: string;
@@ -42,6 +45,8 @@ export default class Base implements AfterViewInit {
     this.imagesLoader = injector.get(ImageLoader);
     this.renderer2 = injector.get(Renderer2);
     this.events = injector.get(Events);
+    this.screenOrientation = injector.get(ScreenOrientation);
+    this.platform = injector.get(Platform);
     // if (pageConfig) {
     //   this._configuredRequest = this._setRequest(pageConfig);
     // }
@@ -55,6 +60,10 @@ export default class Base implements AfterViewInit {
   //     this.events.subscribe(APP_EV.SORT_LIST, this._toggleHandlerRef$);
   //   }
   // }
+  get isOrientationPortrait() {
+    return this.screenOrientation.type.startsWith(this.screenOrientation.ORIENTATIONS.PORTRAIT)
+  }
+
   ngAfterViewInit() {
     this.imagesLoader.configure(this._content, this.renderer2);
     

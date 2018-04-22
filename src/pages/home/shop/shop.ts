@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, ElementRef, Injector, ViewChild } from "@angular/core";
-import { IonicPage } from "ionic-angular";
+import { IonicPage, NavController } from "ionic-angular";
+import { asap } from "rxjs/Scheduler/asap";
 import { IMenuItem, IMenuType, IOrder, IPageConfig } from "../../../interfaces";
 import { ShoppingCart } from "../../../providers";
 import Base from "../../page.base.class";
@@ -27,7 +28,6 @@ export class ShopPage extends Base implements AfterViewInit {
   }
   resultSet = [];
   private _isShopClosed = false;
-  protected readonly _pageName = APP_ITEM_PAGE;
   @ViewChild('header') headerElem: ElementRef;
   private _headerHeight: number;
   //@ViewChild('listHeader') listHeader: ElementRef;
@@ -38,15 +38,19 @@ export class ShopPage extends Base implements AfterViewInit {
 
   currency = Currency;
 
-  constructor(injector: Injector, public cart: ShoppingCart) { 
+  constructor(injector: Injector, public cart: ShoppingCart, public navCtrl: NavController) { 
     super(injector);
 
     this.pageConfig.fireConfig.scope += `/${this.navParams.get("_id")}`; 
     this.initRequest(this.pageConfig);
   }
+  onTapItem({ target }: any, menuItem: IMenuItem, menuType:IMenuType) {
+    target.closest('.btn-addToCart') ? this.addToCart(menuItem, menuType) : this.onSelect(menuItem, menuType);
+  }
   onSelect(menuItem: IMenuItem, { type, subhead }:IMenuType) {
     // this._navigateFromRoot(this._pageName, this._orderFactory(menuItem, type, subhead));
-    this.app.getRootNav().push(this._pageName, this._orderFactory(menuItem, type, subhead));
+    //this.app.getRootNav()
+    this.navCtrl.push(APP_ITEM_PAGE, this._orderFactory(menuItem, type, subhead));
   }
   addToCart(menuItem: IMenuItem, { type, subhead }: IMenuType) {
     console.log("ACTIVATED ADD TO CART => menuItem ", menuItem, type, subhead);
@@ -54,12 +58,12 @@ export class ShopPage extends Base implements AfterViewInit {
     this.cart.addToCart(Order);
   }
   private _orderFactory(...args): IOrder {
-    let [ item, type, subhead, quantity= 1 ] = args;
+    let [ item, type, subhead, quantity= 1, userNotes= '' ] = args;
     return {
       id: this.navParams.get('_id'),
       entityName: this.navParams.get('name'),
-      entityImage: this.navParams.get(IMG_DATA_FIELD_TOKEN),
-      menu: { type, subhead, item, quantity }
+      // entityImage: this.navParams.get(IMG_DATA_FIELD_TOKEN),
+      menu: { type, subhead, item, quantity, userNotes }
     };
   }
 
@@ -102,11 +106,12 @@ export class ShopPage extends Base implements AfterViewInit {
     super.ngAfterViewInit();
   }
   get listContHeight() {
-    const { innerHeight, innerWidth, matchMedia } = window;
-    if ( matchMedia('(orientation: portrait)').matches ) {
-      return Math.max(innerHeight, innerWidth) - this._headerHeight;
-    }
-    return Math.min(innerHeight, innerWidth) - this._headerHeight;
+  
+    const width = this.platform.width();
+    const height = this.platform.height();
+    const value = this.isOrientationPortrait ? Math.max(height, width) : Math.min(height, width); 
+    return value - this._headerHeight;
+
   }
 
   get listWrapHeight() {
@@ -124,6 +129,16 @@ export class ShopPage extends Base implements AfterViewInit {
   }*/
   ionViewDidLoad() {
     this.backgroundImage = `url(${this.navParams.get(IMG_DATA_FIELD_TOKEN)})`;
+    this.screenOrientation.onChange().subscribe(() => 
+      asap.schedule(() => {
+        if (!this.isOrientationPortrait) {
+          const scrollContent = [this._content.getFixedElement(), this._content.getScrollElement()]//Array.from(document.querySelectorAll('.scroll-content, .fixed-content')) as Array<HTMLElement>;
+          for (const el of scrollContent) {
+            el.style.marginTop = `${this.headerElem.nativeElement.offsetHeight}px`;
+          }
+        }
+      }, 100)
+    );
   }
   private _timeFormatter(date: Date) {
     // Example return "7:19 PM"

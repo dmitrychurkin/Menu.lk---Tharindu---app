@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { IonicPageModule } from 'ionic-angular';
-import { ImageLoaderModule, CartWidgetModule } from '../../components';
+import { CartWidgetModule, ImageLoaderModule } from '../../components';
 import { HomePage } from './home';
 
 

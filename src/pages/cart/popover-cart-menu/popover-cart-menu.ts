@@ -1,5 +1,5 @@
 import { Component } from "@angular/core";
-import { IonicPage, ViewController, Events } from "ionic-angular";
+import { Events, IonicPage, ViewController } from "ionic-angular";
 import { APP_EV, PopoverCartMenuEventFlags } from "../../pages.constants";
 
 @IonicPage()
