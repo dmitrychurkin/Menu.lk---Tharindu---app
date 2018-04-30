@@ -12,7 +12,7 @@ export const APP_PROFILE_PAGE = 'ProfilePage';
 export const APP_HOME_PAGE = 'HomePage';
 export const APP_SHOP_PAGE = 'ShopPage';
 export const APP_ITEM_PAGE = 'ItemPage';
-export const APP_LOGIN_PAGE = 'LoginPage';
+// export const APP_LOGIN_PAGE = 'LoginPage';
 export const APP_CART_PAGE = 'CartPage';
 export const APP_QUICK_ORDER_PAGE = 'QuickOrder';
 export enum Currency { US = "$", LAKR = "RS" };

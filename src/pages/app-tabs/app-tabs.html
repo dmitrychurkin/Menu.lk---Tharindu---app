@@ -1,5 +1,15 @@
-<ion-tabs *ngIf="isUserSigned">
+
+
+<app-login-widget (signInTypeSelected)="signInHandler($event)" *ngIf="animationSteps == 1 || animationSteps == 2 || animationSteps == 4"></app-login-widget>
+
+<div #SpinnerContainer class="spinner-container" *ngIf="animationSteps == 0 || animationSteps == 1 || animationSteps == 3 || animationSteps == 4 || animationSteps == 5">
+    <ion-spinner class="spinner" name="dots"></ion-spinner>
+</div>
+
+<ion-tabs (@prepareToRemove.done)="prepareToRemoveDone($event)" [@prepareToRemove]="animationSteps" tabsHighlight="true" *ngIf="animationSteps == 6 || animationSteps == 7">
     <ion-tab [root]="homeRoot" tabTitle="Home" tabIcon="home"></ion-tab>
     <ion-tab [root]="searchRoot" tabTitle="Search" tabIcon="search"></ion-tab>
     <ion-tab [root]="profileRoot" tabTitle="Profile" tabIcon="person"></ion-tab>
 </ion-tabs>
+
+

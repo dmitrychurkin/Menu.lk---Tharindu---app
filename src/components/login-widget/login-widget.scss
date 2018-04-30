@@ -1,11 +1,19 @@
+
 @import url('https://fonts.googleapis.com/css?family=Pacifico');
-page-login {
-  ion-content {
+
+app-login-widget {
+  // animation: 1s cubic-bezier(0.4, 0, 0.2, 1) both enterLoginWidget;
+  display: block; 
+  height: 100%;
+  box-shadow: -4px 0px 20px 0px #4e4e4e;
+
+  .login-component {
     background: linear-gradient(#9664e6, #00BCD4);
     .bg-img-cont {
       width: 100%;
       height: 40%;
       overflow: hidden;
+
       .bg-img {
         margin: 0 auto;
         background: url('../assets/imgs/icon.png') no-repeat;
@@ -28,5 +36,14 @@ page-login {
       position: absolute;
       left: 15%;
     }
+  }
+}
+
+@keyframes enterLoginWidget {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
   }
 }

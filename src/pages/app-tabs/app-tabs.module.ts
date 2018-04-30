@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { IonicPageModule } from 'ionic-angular';
+import { LoginWidgetModule } from '../../components/login-widget/login-widget.module';
 import { AppTabsPage } from './app-tabs';
 
 @NgModule({
@@ -7,7 +8,8 @@ import { AppTabsPage } from './app-tabs';
     AppTabsPage,
   ],
   imports: [
-    IonicPageModule.forChild(AppTabsPage)
+    IonicPageModule.forChild(AppTabsPage),
+    LoginWidgetModule
   ]
 })
 export class AppTabsPageModule {}
