@@ -1,15 +1,25 @@
+<app-login-widget (signInTypeSelected)="signInHandler($event)" *ngIf="animationSteps == 1 || animationSteps == 2 || animationSteps == 4">
 
-
-<app-login-widget (signInTypeSelected)="signInHandler($event)" *ngIf="animationSteps == 1 || animationSteps == 2 || animationSteps == 4"></app-login-widget>
+</app-login-widget>
 
 <div #SpinnerContainer class="spinner-container" *ngIf="animationSteps == 0 || animationSteps == 1 || animationSteps == 3 || animationSteps == 4 || animationSteps == 5">
     <ion-spinner class="spinner" name="dots"></ion-spinner>
 </div>
 
-<ion-tabs (@prepareToRemove.done)="prepareToRemoveDone($event)" [@prepareToRemove]="animationSteps" tabsHighlight="true" *ngIf="animationSteps == 6 || animationSteps == 7">
+<ion-tabs (@prepareToRemove.done)="prepareToRemoveDone($event)" [@prepareToRemove]="animationSteps" tabsHighlight="true"
+    *ngIf="animationSteps == 6 || animationSteps == 7">
     <ion-tab [root]="homeRoot" tabTitle="Home" tabIcon="home"></ion-tab>
     <ion-tab [root]="searchRoot" tabTitle="Search" tabIcon="search"></ion-tab>
     <ion-tab [root]="profileRoot" tabTitle="Profile" tabIcon="person"></ion-tab>
 </ion-tabs>
 
-
+<ion-content *ngIf="animationSteps == 8">
+    <div class="centered-grid columnaize">
+        <img src="assets/imgs/ica-slidebox-img-4.png" class="slide-image" margin-horizontal />
+        <h2 class="slide-title" text-center padding-horizontal>Congratulations, Ready to Go?</h2>
+        <button ion-button icon-end large clear margin-horizontal (click)="startApp()">
+            Continue
+            <ion-icon name="arrow-forward"></ion-icon>
+        </button>
+    </div>
+</ion-content>

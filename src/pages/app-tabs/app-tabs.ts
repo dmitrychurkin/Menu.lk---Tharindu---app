@@ -1,11 +1,11 @@
 import { AnimationBuilder, animate, state, style, transition, trigger } from '@angular/animations';
 import { AfterViewChecked, Component, ElementRef, ViewChild } from '@angular/core';
-import { IonicPage, Tabs, ToastController } from 'ionic-angular';
+import { Events, IonicPage, Tabs, ToastController } from 'ionic-angular';
 import { asap } from 'rxjs/Scheduler/asap';
 import { Subscription } from 'rxjs/Subscription';
 import { ISignInMeta, LoginWidgetComponent } from '../../components/login-widget/login-widget.component';
-import { AuthProvider } from '../../providers';
-import { APP_HOME_PAGE, APP_PROFILE_PAGE, APP_SEARCH_PAGE } from '../pages.constants';
+import { AuthProvider, IPWDSignInFlowHandlers, Providers } from '../../providers';
+import { APP_EV, APP_HOME_PAGE, APP_PROFILE_PAGE, APP_SEARCH_PAGE } from '../pages.constants';
 import AppTabsAnimations from './app-tabs.animation';
 
 /**
@@ -24,7 +24,8 @@ export enum AnimationLifecicleSteps {
   SIGN_IN_REQUEST_SENT_TRANSITION, 
   SIGN_IN_REQUEST_SENT,
   PRELOADER_REMOVED,
-  SIGN_OUT
+  SIGN_OUT,
+  NEW_USER
 };
 
 @IonicPage()
@@ -82,8 +83,10 @@ export class AppTabsPage implements AfterViewChecked {
   private _sub: Subscription;
   private _flag: number;
 
-  constructor(public authProvider: AuthProvider, 
+  constructor(public authProvider: AuthProvider,
+              // public renderer2: Renderer2, 
               public toastCtrl: ToastController,
+              public events: Events,
               animationBuilder: AnimationBuilder) {
     this.componentAnimations = new AppTabsAnimations(animationBuilder);
   }
@@ -111,7 +114,19 @@ export class AppTabsPage implements AfterViewChecked {
           this.isAnimating = true;
           this.componentAnimations.removeLoginWidget(this.loginWidget.nativeElement);
           this.componentAnimations.showPreloader(this.spinner.nativeElement, () => {
-            this.authProvider.signIn(this._flag);
+            let PWD_handlers: IPWDSignInFlowHandlers;
+            if (this._flag == Providers.PWD) {
+              PWD_handlers = {
+                onCancel: (data: any) => {
+                  console.log('Cancel handler => ', data);
+                  this.animationSteps = AnimationLifecicleSteps.ENTER_LOGIN_TRANSITION;
+                },
+                onNextOrSuccess: (data: any) => {
+                  console.log('Next handler => ', data);
+                }
+              };
+            }
+            this.authProvider.signIn(this._flag, PWD_handlers);
             this.animationSteps = AnimationLifecicleSteps.SIGN_IN_REQUEST_SENT;
             this.isAnimating = false;
           });
@@ -123,7 +138,7 @@ export class AppTabsPage implements AfterViewChecked {
         if (this.spinner) {
           this.isAnimating = true;
           this.componentAnimations.removePreloaderIfSign(this.spinner.nativeElement, () => {
-            this.animationSteps = AnimationLifecicleSteps.PRELOADER_REMOVED;
+            this.animationSteps = this.authProvider.isNewUser ? AnimationLifecicleSteps.NEW_USER : AnimationLifecicleSteps.PRELOADER_REMOVED;
             this.isAnimating = false;
           });
         }
@@ -148,14 +163,13 @@ export class AppTabsPage implements AfterViewChecked {
     }
   }
   prepareToRemoveDone({ toState }: any) {
-    if (toState == 7) {
-      this.animationSteps = AnimationLifecicleSteps.SHOW_PRELOADER;
-      this.authProvider
-          .afAuth
-          .auth
-          .signOut();
+    if (toState == AnimationLifecicleSteps.SIGN_OUT) {
+      this.events.publish(APP_EV.TABS_SIGN_IN_ANIMATION_DONE, true);
     }
-    
+  }
+  startApp() {
+    delete this.authProvider.isNewUser;
+    this.animationSteps = AnimationLifecicleSteps.PRELOADER_REMOVED;
   }
 
   signInHandler({ flag }: ISignInMeta) {
@@ -165,9 +179,14 @@ export class AppTabsPage implements AfterViewChecked {
 
   ionViewDidLoad() {
     console.log('TABS PAGE ionViewDidLoad!');
-    this._sub = this.authProvider.user.subscribe((user: any) => {
+    // this.authProvider.configure(this.renderer2);
+    this._sub = this.authProvider.user$.subscribe((user: any) => {
       console.log("AppTabsPage user => ", user);
       asap.schedule(() => {
+        // if (user && this.authProvider.isNewUser) {
+        //   this.animationSteps = AnimationLifecicleSteps.NEW_USER;
+        //   return;
+        // }
         this.animationSteps = user ? AnimationLifecicleSteps.REMOVE_PRELOADER_IF_SIGNED : AnimationLifecicleSteps.ENTER_LOGIN_TRANSITION;
       }, this.animationSteps == AnimationLifecicleSteps.SHOW_PRELOADER ? 2000 : 0);
     }, () => {

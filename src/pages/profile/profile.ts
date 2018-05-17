@@ -1,7 +1,8 @@
 import { Component } from '@angular/core';
-import { IonicPage, NavController, NavParams } from 'ionic-angular';
+import { Events, IonicPage, NavController } from 'ionic-angular';
 import { AuthProvider } from '../../providers';
-import { AppTabsPage, AnimationLifecicleSteps } from '../app-tabs/app-tabs';
+import { AnimationLifecicleSteps, AppTabsPage } from '../app-tabs/app-tabs';
+import { APP_EV } from '../pages.constants';
 import { asap } from 'rxjs/Scheduler/asap';
 
 /**
@@ -20,45 +21,38 @@ export class ProfilePage {
 
   userStatus: Promise<any>;
   signOutClicked = false;
+  private _animationDoneHandler: Function;
+  private _tabsParentInstance: AppTabsPage = this.navCtrl.parent.viewCtrl.instance;
 
   constructor(
     public navCtrl: NavController, 
-    public navParams: NavParams,
+    public events: Events,
     public authProvider: AuthProvider) {}
 
   onSignOut() {
     if (this.signOutClicked) return;
-
     this.signOutClicked = true;
-    const appTabsPageInstance: AppTabsPage = this.navCtrl.parent.viewCtrl.instance;
-    appTabsPageInstance.animationSteps = AnimationLifecicleSteps.SIGN_OUT;
-    asap.schedule(() => this.navCtrl.parent.select(0), 350);
-    
-      /*this.authProvider
-        .afAuth
-        .auth
-        .signOut()
-        .then((res: any) => {
-          console.log('RESULT AFTER SIGN OUT => ', this.navCtrl.parent);
-          //this.authProvider.goToLoginPage(this.navCtrl);
-        });*/
-
+    this._tabsParentInstance.animationSteps = AnimationLifecicleSteps.SIGN_OUT;
   }
 
   resertTabs() {
     return this.navCtrl.parent.select(0);
   }
 
-  ionViewWillEnter() {
-    console.log('Profile tab been will enter => ', this.navCtrl.parent.viewCtrl.instance);
-  }
-
-  ionViewDidLeave() {
-    console.log('Profile tab ViewDidLeave => ');
-  }
-
   ionViewDidLoad() {
-    console.log('ionViewDidLoad ProfilePage');
+    this._animationDoneHandler = (done: true) => {
+      if (done) {
+        this.resertTabs().then(() => {
+          const User = this.authProvider.userInstance;
+          return User.isAnonymous ? User.delete() : this.authProvider.signOut();
+        });
+      }
+    };
+
+    this.events.subscribe(APP_EV.TABS_SIGN_IN_ANIMATION_DONE, this._animationDoneHandler);
   }
 
+  ionViewWillUnload() {
+    this.events.unsubscribe(APP_EV.TABS_SIGN_IN_ANIMATION_DONE, this._animationDoneHandler);
+  }
 }

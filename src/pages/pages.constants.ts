@@ -20,7 +20,8 @@ export const IMG_DATA_FIELD_TOKEN = 'imageURL';
 export enum CART_ACTION_FLAGS { ADD, DELETE };
 export enum APP_EV { 
   CART_ACTION = 'cart:action => add | delete', 
-  DELETE_CART_MODE = 'cart:deleteMode'
+  DELETE_CART_MODE = 'cart:deleteMode',
+  TABS_SIGN_IN_ANIMATION_DONE = 'tabs:animation => done'
 };
 export enum DATABASE_TOKENS { SHOPPING_CART = 'ShoppingCart' };
 export const MAX_CART_ITEMS = 25;

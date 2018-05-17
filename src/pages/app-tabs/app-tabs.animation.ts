@@ -1,6 +1,6 @@
 import { AnimationBuilder, style, animate } from "@angular/animations";
 
-export default class AppTabsAnimations {
+export default class {
 
   constructor(public animationBuilder: AnimationBuilder) {}
 // Preloader actions

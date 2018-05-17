@@ -14,7 +14,11 @@
 // To declare rules for a specific mode, create a child rule
 // for the .md, .ios, or .wp mode classes. The mode class is
 // automatically applied to the <body> element in the app.
-
+ion-alert.error {
+  .error-message {
+    color: color($colors, danger);
+  }
+}
 .spinner-container {
   display: flex;
   height: 100%;
@@ -31,6 +35,14 @@
   align-items: center;
   justify-content: space-between;
 }
+
+.centered-grid {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
 @keyframes appear {
   from {
     opacity: 0;
