@@ -15,7 +15,7 @@
 // for the .md, .ios, or .wp mode classes. The mode class is
 // automatically applied to the <body> element in the app.
 ion-alert.error {
-  .error-message {
+  .alert-message, .error-message {
     color: color($colors, danger);
   }
 }

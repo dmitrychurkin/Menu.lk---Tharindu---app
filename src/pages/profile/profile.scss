@@ -1,3 +1,59 @@
 page-profile {
-
+  .avatar-container {
+    height: 200px;
+    width: 100%;
+    background: linear-gradient(#9664e6, #00BCD4);
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+    justify-content: space-around;
+    .avatar-wrapper {
+      $avatarSize: 115px;
+      position: relative;
+      display: flex;
+      transform: translateY(17px);
+      border-radius: 50%;
+      width: $avatarSize;
+      height: $avatarSize;
+      border: 7px solid rgba(255, 0, 0, .48);
+      box-shadow: 0px 2px 20px 0px rgba(0, 0, 0, 0.61);
+      img {
+        transition: opacity 1s;
+        border-radius: inherit;
+        width: $avatarSize - 13;
+        height: $avatarSize - 13;
+        max-width: 100%;
+      }
+      ion-spinner {
+        position: absolute;
+        left: 38%;
+        top: 34%;
+        transition: opacity 1s;
+        margin: auto;
+        transform: scale(2);
+        * {
+          stroke: color($colors, light);
+        }
+      }
+    }
+    .user-name {
+      width: 100%;
+      color: #fff;
+      font-size: 2em;
+      span {
+        width: inherit;
+        display: inline-block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+  }
+  .btn-wrapper {
+    display: flex;
+    .btn {
+      margin: auto;
+    }
+  }
+  
 }

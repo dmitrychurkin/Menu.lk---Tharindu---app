@@ -3,7 +3,6 @@ import { Events, IonicPage, NavController } from 'ionic-angular';
 import { AuthProvider } from '../../providers';
 import { AnimationLifecicleSteps, AppTabsPage } from '../app-tabs/app-tabs';
 import { APP_EV } from '../pages.constants';
-import { asap } from 'rxjs/Scheduler/asap';
 
 /**
  * Generated class for the ProfilePage page.
@@ -15,11 +14,11 @@ import { asap } from 'rxjs/Scheduler/asap';
 @IonicPage()
 @Component({
   selector: 'page-profile',
-  templateUrl: 'profile.html',
+  templateUrl: 'profile.html'
 })
 export class ProfilePage {
 
-  userStatus: Promise<any>;
+  avatarLoaded = false;
   signOutClicked = false;
   private _animationDoneHandler: Function;
   private _tabsParentInstance: AppTabsPage = this.navCtrl.parent.viewCtrl.instance;
@@ -35,14 +34,14 @@ export class ProfilePage {
     this._tabsParentInstance.animationSteps = AnimationLifecicleSteps.SIGN_OUT;
   }
 
-  resertTabs() {
+  resetTabs() {
     return this.navCtrl.parent.select(0);
   }
 
   ionViewDidLoad() {
     this._animationDoneHandler = (done: true) => {
       if (done) {
-        this.resertTabs().then(() => {
+        this.resetTabs().then(() => {
           const User = this.authProvider.userInstance;
           return User.isAnonymous ? User.delete() : this.authProvider.signOut();
         });

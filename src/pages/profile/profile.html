@@ -6,13 +6,32 @@
 -->
 <ion-header>
 
-  <ion-navbar>
-    <ion-title>Profile</ion-title>
+  <ion-navbar no-border-bottom>
+    <ion-grid>
+      <ion-row>
+        <ion-title>Profile</ion-title>
+        <app-cart-widget></app-cart-widget>
+      </ion-row>
+    </ion-grid>
   </ion-navbar>
 
 </ion-header>
 
 
-<ion-content padding>
-  <button ion-button (tap)="onSignOut()">Log Out</button>
+<ion-content>
+
+  <div class="avatar-container">
+    <div class="avatar-wrapper">
+      <img [style.opacity]="avatarLoaded ? 1 : 0" (load)="avatarLoaded = true" [src]="authProvider.userInstance?.photoURL || 'assets/imgs/profile.png'">
+      <ion-spinner [style.opacity]="avatarLoaded ? 0 : 1" name="crescent"></ion-spinner>
+    </div>
+    <div class="user-name" padding-horizontal text-center>
+      <span>{{ authProvider.userInstance?.displayName || authProvider.pwdAuthUserData?.userName }}</span>
+    </div>
+  </div>
+
+  <div class="btn-wrapper" padding>
+    <button class="btn" ion-button (tap)="onSignOut()">Log Out</button>
+  </div>
+  
 </ion-content>

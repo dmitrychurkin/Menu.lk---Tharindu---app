@@ -33,6 +33,11 @@ export const ANGULAR_ANIMATION_OPACITY = [
     transition('void <=> *', animate('1s ease-out'))
   ])
 ]
+export const ANGULAR_ANIMATION_OPACITY_1 = 
+  trigger('opacity', [
+    state('void', style({ opacity: 0 })),
+    transition('* <=> *', animate('1s ease-out', style('*')))
+  ]);
 /** Tests only */
 /*let urlNormalizer = (img: string, isShop: number | boolean = false) => `assets/imgs/${isShop ? 'shops/' : ''}${img}`;
 export let mockBackendCall: (...args: Array<any>) => Promise<any> = (job: (...args: Array<any>) => any, needSuccess= true, delay= 1000) => {

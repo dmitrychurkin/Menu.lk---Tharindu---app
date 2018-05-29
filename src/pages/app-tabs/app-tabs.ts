@@ -7,6 +7,7 @@ import { ISignInMeta, LoginWidgetComponent } from '../../components/login-widget
 import { AuthProvider, IPWDSignInFlowHandlers, Providers } from '../../providers';
 import { APP_EV, APP_HOME_PAGE, APP_PROFILE_PAGE, APP_SEARCH_PAGE } from '../pages.constants';
 import AppTabsAnimations from './app-tabs.animation';
+import { User } from '@firebase/auth-types';
 
 /**
  * Generated class for the AppTabsPage tabs.
@@ -81,6 +82,7 @@ export class AppTabsPage implements AfterViewChecked {
 
   componentAnimations: AppTabsAnimations;
   private _sub: Subscription;
+  private _subUser: Subscription;
   private _flag: number;
 
   constructor(public authProvider: AuthProvider,
@@ -121,7 +123,7 @@ export class AppTabsPage implements AfterViewChecked {
                   console.log('Cancel handler => ', data);
                   this.animationSteps = AnimationLifecicleSteps.ENTER_LOGIN_TRANSITION;
                 },
-                onNextOrSuccess: (data: any) => {
+                onSuccess: (data: any) => {
                   console.log('Next handler => ', data);
                 }
               };
@@ -180,8 +182,11 @@ export class AppTabsPage implements AfterViewChecked {
   ionViewDidLoad() {
     console.log('TABS PAGE ionViewDidLoad!');
     // this.authProvider.configure(this.renderer2);
-    this._sub = this.authProvider.user$.subscribe((user: any) => {
+    this._sub = this.authProvider.user$.subscribe((user: User) => {
       console.log("AppTabsPage user => ", user);
+
+      this._subUser = this.authProvider.setPwdAuthUserData(user);
+        
       asap.schedule(() => {
         // if (user && this.authProvider.isNewUser) {
         //   this.animationSteps = AnimationLifecicleSteps.NEW_USER;
@@ -214,6 +219,7 @@ export class AppTabsPage implements AfterViewChecked {
 
   ionViewWillUnload() {
     this._sub.unsubscribe();
+    this._subUser.unsubscribe();
   }
 
 }

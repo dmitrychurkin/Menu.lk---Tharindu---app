@@ -84,3 +84,7 @@ export interface IApiConfig {
   fireConfig?: IFireConfig;
   httpConfig?: IHttpConfig;
 }
+
+export interface IPwdAuthUserData {
+  userName: string;
+}
