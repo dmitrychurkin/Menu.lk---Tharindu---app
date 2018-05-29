@@ -47,7 +47,7 @@ export class AuthProvider {
   signOut() {
     return this.afAuth
       .auth
-      .signOut();
+      .signOut().then(() => this.pwdAuthUserData && delete this.pwdAuthUserData);
   }
 
   private _signInPwdFlow({ onCancel= function(){}, onSuccess= function(){} }: IPWDSignInFlowHandlers) {
