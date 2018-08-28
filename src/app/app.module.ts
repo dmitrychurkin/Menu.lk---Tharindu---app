@@ -1,5 +1,4 @@
-import { HttpClientModule } from '@angular/common/http';
-import { ErrorHandler, NgModule } from '@angular/core';
+import { ErrorHandler, NgModule, InjectionToken } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ScreenOrientation } from '@ionic-native/screen-orientation';
@@ -8,13 +7,24 @@ import { StatusBar } from '@ionic-native/status-bar';
 import { IonicStorageModule } from '@ionic/storage';
 import { AngularFireModule } from 'angularfire2';
 import { AngularFireAuthModule } from 'angularfire2/auth';
-import { AngularFireDatabase, AngularFireDatabaseModule } from 'angularfire2/database';
+import { AngularFirestoreModule, AngularFirestore } from 'angularfire2/firestore';
 import { IonicApp, IonicErrorHandler, IonicModule } from 'ionic-angular';
-import { ApiProvider, AuthProvider, ShoppingCart, StorageProvider } from '../providers';
+import { 
+  AuthService, 
+  ShoppingCartService, 
+  OrdersNotificatorService, 
+  RootDataReceiverService, 
+  NetworkService,
+  ToastMessangerService, 
+  OrdersManagerService} from '../services';
 import { MyApp } from './app.component';
+import { Network } from '@ionic-native/network';
+import { StateDataStoreEntity } from '../pages/data-state-store.class';
+import { BATCH_SIZE, FORM_USER_TEMPLATE_DATA_TOKEN, FORM_USER_TEMPLATE_DATA } from '../pages/pages.constants';
+import { IQuickOrder } from '../interfaces';
 
 
-
+export const DataStoreForCurrentOrders = new InjectionToken<StateDataStoreEntity<IQuickOrder>>('current_orders');
 const firebaseConfig = {
   apiKey: "AIzaSyDnyJhYizozTXovtuKzUCOrV5gL5mRDUIo",
   authDomain: "menu-lk.firebaseapp.com",
@@ -32,10 +42,9 @@ const firebaseConfig = {
     BrowserModule,
     BrowserAnimationsModule,
     IonicModule.forRoot(MyApp),
-    HttpClientModule,
     IonicStorageModule.forRoot(),
     AngularFireModule.initializeApp(firebaseConfig),
-    AngularFireDatabaseModule,
+    AngularFirestoreModule,
     AngularFireAuthModule
   ],
   bootstrap: [IonicApp],
@@ -45,11 +54,17 @@ const firebaseConfig = {
     SplashScreen,
     ScreenOrientation,
     {provide: ErrorHandler, useClass: IonicErrorHandler},
-    ApiProvider,
-    ShoppingCart,
-    StorageProvider,
-    AngularFireDatabase,
-    AuthProvider
+    Network,
+    NetworkService,
+    ShoppingCartService,
+    AngularFirestore,
+    AuthService,
+    OrdersNotificatorService,
+    RootDataReceiverService,
+    ToastMessangerService,
+    { provide: DataStoreForCurrentOrders, useFactory: () => new StateDataStoreEntity({ identificator: 'current_orders', batchSize: BATCH_SIZE }), multi: false },
+    { provide: FORM_USER_TEMPLATE_DATA_TOKEN, useValue: FORM_USER_TEMPLATE_DATA, multi: false },
+    OrdersManagerService
   ]
 })
 export class AppModule {}

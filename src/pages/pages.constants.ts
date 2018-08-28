@@ -1,20 +1,17 @@
-import {
-  trigger,
-  state,
-  style,
-  animate,
-  transition
-} from '@angular/animations';
-//Constants for getting type references
+import { trigger, state, style, transition, animate } from "@angular/animations";
+import { InjectionToken } from "../../node_modules/@angular/core";
+import { FormUserTemplateData } from "../interfaces";
+
 export const APP_TABS_PAGE = 'AppTabsPage';
 export const APP_SEARCH_PAGE = 'SearchPage';
 export const APP_PROFILE_PAGE = 'ProfilePage';
 export const APP_HOME_PAGE = 'HomePage';
-export const APP_SHOP_PAGE = 'ShopPage';
-export const APP_ITEM_PAGE = 'ItemPage';
-// export const APP_LOGIN_PAGE = 'LoginPage';
+export const APP_MENU_PAGE = 'MenuPage';
+export const APP_SHOP_ITEM_PAGE = 'ShopItemPage';
+export const APP_HISTORY_ORDERS_PAGE = 'HistoryOrdersPage';
 export const APP_CART_PAGE = 'CartPage';
 export const APP_QUICK_ORDER_PAGE = 'QuickOrder';
+export const BATCH_SIZE = 3;
 export enum Currency { US = "$", LAKR = "RS" };
 export const IMG_DATA_FIELD_TOKEN = 'imageURL';
 export enum CART_ACTION_FLAGS { ADD, DELETE };
@@ -23,186 +20,120 @@ export enum APP_EV {
   DELETE_CART_MODE = 'cart:deleteMode',
   TABS_SIGN_IN_ANIMATION_DONE = 'tabs:animation => done'
 };
+export enum OrderManagmentActionFlag { CANCEL, RESTORE, DELETE, CLOSE_MODAL, VIEW };
 export enum DATABASE_TOKENS { SHOPPING_CART = 'ShoppingCart' };
 export const MAX_CART_ITEMS = 25;
 export enum PopoverCartMenuEventFlags { DELETE = 'D', CANCEL = 'X' };
-export const ANGULAR_ANIMATION_OPACITY = [
-  trigger('animator', [
-    state('void', style({ opacity: 0 })),
-    state('in', style({ opacity: 1 })),
-    transition('void <=> *', animate('1s ease-out'))
-  ])
-]
-export const ANGULAR_ANIMATION_OPACITY_1 = 
-  trigger('opacity', [
-    state('void', style({ opacity: 0 })),
-    transition('* <=> *', animate('1s ease-out', style('*')))
+export enum OrderStatus { PLACED, PROCESSED, DELIVERY, DONE, CANCELLED };
+export const ANGULAR_ANIMATION_OPACITY = ($out= 'void', $triggerName= 'opacity') => 
+  trigger($triggerName, [
+    state($out, style({ opacity: 0 })),
+    state('true', style({ opacity: 1 })),
+    transition(`${$out} <=> true`, animate('.5s ease-in-out'))
   ]);
-/** Tests only */
-/*let urlNormalizer = (img: string, isShop: number | boolean = false) => `assets/imgs/${isShop ? 'shops/' : ''}${img}`;
-export let mockBackendCall: (...args: Array<any>) => Promise<any> = (job: (...args: Array<any>) => any, needSuccess= true, delay= 1000) => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      needSuccess ? resolve( job() ) : reject( job() );
-    }, delay)
-  });
-};
 
-export const mainMenu = [
+export const FORM_USER_TEMPLATE_DATA_TOKEN = new InjectionToken('FORM_USER_DATA_FIELDS');
+export const FORM_USER_TEMPLATE_DATA: FormUserTemplateData = [
   {
-    "name": "cofee bean",
-    "imageUrl": urlNormalizer('04-coffe.jpg'),
-    "timing": 25,
-    "category": "coffee shop",
-    "takeaway": true,
-    "star_rate": 4.5,
-    "open_time": "24/7 Open"
+    icon: 'person',
+    label: 'your name',
+    type: 'text',
+    control: 'name',
+    model: '',
+    mappedDbName: 'userName',
+    validators: {
+      required: true,
+      minlength: '3',
+      maxlength: '20'
+    }
   },
   {
-    "name": "praneetha restaurant",
-    "imageUrl": urlNormalizer('health-effects-of-coffee.jpg'),
-    "timing": 45,
-    "category": "restaurant",
-    "takeaway": true,
-    "star_rate": 3.5,
-    "open_time": "24/7 Open"
-  }
-
-  // test only
-
-  ,{
-    "name": "cofee bean",
-    "imageUrl": urlNormalizer('04-coffee.jpg'),
-    "timing": 25,
-    "category": "coffee shop",
-    "takeaway": true,
-    "star_rate": 4.5,
-    "open_time": "24/7 Open"
+    icon: 'call',
+    label: 'telephone no (example: +31636363634)',
+    type: 'tel',
+    control: 'phone',
+    model: '',
+    mappedDbName: 'userPhone',
+    validators: {
+      required: true,
+      pattern: '^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$'
+    }
   },
   {
-    "name": "praneetha restaurant",
-    "imageUrl": urlNormalizer('health-effects-of-coffee.jpg'),
-    "timing": 45,
-    "category": "restaurant",
-    "takeaway": true,
-    "star_rate": 3.5,
-    "open_time": "24/7 Open"
+    icon: 'mail',
+    label: 'email',
+    type: 'email',
+    control: 'email',
+    model: '',
+    mappedDbName: 'userEmail',
+    validators: {
+      required: true,
+      pattern: '^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$',
+      maxlength: '50'
+    }
   },
   {
-    "name": "cofee bean",
-    "imageUrl": urlNormalizer('04-coffee.jpg'),
-    "timing": 25,
-    "category": "coffee shop",
-    "takeaway": true,
-    "star_rate": 4.5,
-    "open_time": "24/7 Open"
+    icon: 'pin',
+    label: 'address',
+    type: 'text',
+    control: 'address',
+    model: '',
+    mappedDbName: 'userAddress',
+    validators: {
+      required: true,
+      minlength: '3',
+      maxlength: '50'
+    }
   },
   {
-    "name": "praneetha restaurant",
-    "imageUrl": urlNormalizer('health-effects-of-coffee.jpg'),
-    "timing": 45,
-    "category": "restaurant",
-    "takeaway": true,
-    "star_rate": 3.5,
-    "open_time": "24/7 Open"
-  },
-  {
-    "name": "cofee bean",
-    "imageUrl": urlNormalizer('04-coffee.jpg'),
-    "timing": 25,
-    "category": "coffee shop",
-    "takeaway": true,
-    "star_rate": 4.5,
-    "open_time": "24/7 Open"
-  },
-  {
-    "name": "praneetha restaurant",
-    "imageUrl": urlNormalizer('health-effects-of-coffee.jpg'),
-    "timing": 45,
-    "category": "restaurant",
-    "takeaway": true,
-    "star_rate": 3.5,
-    "open_time": "24/7 Open"
-  },
-  {
-    "name": "cofee bean",
-    "imageUrl": urlNormalizer('04-coffee.jpg'),
-    "timing": 25,
-    "category": "coffee shop",
-    "takeaway": true,
-    "star_rate": 4.5,
-    "open_time": "24/7 Open"
-  },
-  {
-    "name": "praneetha restaurant",
-    "imageUrl": urlNormalizer('health-effects-of-coffee.jpg'),
-    "timing": 45,
-    "category": "restaurant",
-    "takeaway": true,
-    "star_rate": 3.5,
-    "open_time": "24/7 Open"
-  },
-  {
-    "name": "cofee bean",
-    "imageUrl": urlNormalizer('04-coffee.jpg'),
-    "timing": 25,
-    "category": "coffee shop",
-    "takeaway": true,
-    "star_rate": 4.5,
-    "open_time": "24/7 Open"
-  },
-  {
-    "name": "praneetha restaurant",
-    "imageUrl": urlNormalizer('health-effects-of-coffee.jpg'),
-    "timing": 45,
-    "category": "restaurant",
-    "takeaway": true,
-    "star_rate": 3.5,
-    "open_time": "24/7 Open"
-  },
-  {
-    "name": "cofee bean",
-    "imageUrl": urlNormalizer('04-coffee.jpg'),
-    "timing": 25,
-    "category": "coffee shop",
-    "takeaway": true,
-    "star_rate": 4.5,
-    "open_time": "24/7 Open"
-  },
-  {
-    "name": "praneetha restaurant",
-    "imageUrl": urlNormalizer('health-effects-of-coffee.jpg'),
-    "timing": 45,
-    "category": "restaurant",
-    "takeaway": true,
-    "star_rate": 3.5,
-    "open_time": "24/7 Open"
+    icon: 'alert',
+    label: 'additional information',
+    control: 'notes',
+    type: null,
+    model: '',
+    validators: {
+      maxlength: '100'
+    }
   }
 ];
 
-export const shopMenus = 
-  {
-    "cofee bean": [
-      {
-        "name": "cappuccino",
-        "desc": "A cappuccino is an Italian coffee drink that is traditionally prepared with double espresso, and steamed milk foam. Variations of the drink involve the use of cream instead of milk, and flavoring with cinnamon or chocolate powder. It is typically smaller in volume than a caffè latte, with a thicker layer of micro foam.",
-        "price": "450",
-        "currency": "LAKR",
-        "imageUrl": urlNormalizer('cappuchin.jpg', 1)
-      },
-      {
-        "name": "latte",
-        "desc": "A latte is a coffee drink made with espresso and steamed milk. The term as used in English is a shortened form of the Italian caffè latte, caffelatte or caffellatte, which means 'milk coffee'.",
-        "price": "300",
-        "currency": "LAKR",
-        "imageUrl": urlNormalizer('latte.jpeg', 1)
-      },
-      {
-        "name": "americano",
-        "desc": "Caffè Americano or Americano is a type of coffee drink prepared by diluting an espresso with hot water, giving it a similar strength to, but different flavor from traditionally brewed coffee.",
-        "price": "250",
-        "currency": "LAKR",
-        "imageUrl": urlNormalizer('americano.jpg', 1)
-      }
-    ]
-  };*/
+export const ERROR_CLASS_NAME = 'error';
+
+export namespace FIREBASE_DB_TOKENS {
+
+  export const ORDERS = 'orders';
+  export const ORDER_CONTENT = 'orderContent';
+
+  export const USERS = 'users';
+
+  export const MENUS = 'menus';
+
+  export const RESTAURANTS = 'restaurants';
+  export const CATERING = 'catering';
+
+};
+
+export namespace FILE_UPLOAD_MAX_REQ {
+  export const SIZE = 100000;
+  export const MIME_TYPE_ARR = ['image/jpeg', 'image/jpg', 'image/png'];
+}
+
+namespace APP_SOUNDS {
+  export const ADD_TO_CART = 'addToCart.mp3';
+  export const REMOVE_FROM_CART = 'removeFromCart.mp3';
+  export const SEND_ORDER = 'sendOrder.mp3';
+  export const CANCEL_ORDER = 'cancelOrder.mp3';
+  export const RESTORE_ORDER = 'restoreOrder.mp3';
+  export const DELETE_ORDER = 'deleteOrder.mp3';
+  export const MODIFIED_BY_ADMIN = 'modifiedByAdminOrder.mp3';
+}
+
+export const SOUND_MAPPER = {
+  [OrderManagmentActionFlag.CANCEL]: APP_SOUNDS.CANCEL_ORDER,
+  [OrderManagmentActionFlag.RESTORE]: APP_SOUNDS.RESTORE_ORDER,
+  [OrderManagmentActionFlag.DELETE]: APP_SOUNDS.DELETE_ORDER,
+  SEND_ORDER: APP_SOUNDS.SEND_ORDER,
+  ADD_TO_CART: APP_SOUNDS.ADD_TO_CART,
+  REMOVE_FROM_CART: APP_SOUNDS.REMOVE_FROM_CART,
+  MODIFIED_BY_ADMIN: APP_SOUNDS.MODIFIED_BY_ADMIN
+};

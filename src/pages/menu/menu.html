@@ -1,0 +1,90 @@
+<ion-header>
+
+  <ion-navbar no-border-bottom>
+    <ion-grid>
+      <ion-row>
+        <ion-title>Menu.lk</ion-title>
+        <div class="cart-widget-container">
+          <app-cart-widget [style.top.px]="-7"></app-cart-widget>
+        </div>
+      </ion-row>
+    </ion-grid>
+  </ion-navbar>
+
+</ion-header>
+
+
+<ion-content>
+  <div class="image-holder" [style.background-image]="backgroundImage"></div>
+  <div class="list-container" [style.height.px]="listContainerHeight">
+    <div text-center padding-bottom class="list-header">
+      <h2 text-capitalize>{{ RestaurantData.name }}</h2>
+      <div>
+        <ion-note>
+          <ion-icon name="star"></ion-icon>
+          {{ RestaurantData.rating }} | {{ RestaurantData.category }}
+          <ion-icon name="bulb"></ion-icon>
+          {{ RestaurantData.takeaway ? 'Takeaway' : 'Not takeaway'}}
+        </ion-note>
+      </div>
+      <div>
+        <ion-note>{{ RestaurantData.type }}</ion-note>
+      </div>
+      <div>
+        <ion-note>
+          <span>{{ workingTime }}</span>
+        </ion-note>
+      </div>
+    </div>
+    <div class="list-wrapper" [style.height.px]="listWrapperHeight">
+
+      <div *ngIf="ShopMenu === undefined" margin-top class="spinner-grid">
+        <ion-spinner color="primary"></ion-spinner>
+      </div>
+
+      <ng-container *ngIf="ShopMenu">
+        <ion-list *ngFor="let menuType of ShopMenu">
+          <ion-item-divider color="dark">
+            <p class="list-header-h1">{{ menuType.type }}</p>
+            <p class="list-header-h3">
+              <i>{{ menuType.subhead }}</i>
+            </p>
+          </ion-item-divider>
+          <button ion-item detail-push *ngFor="let menuItem of menuType.items" (tap)="onTapItem($event, menuItem, menuType)">
+            <ion-thumbnail item-start>
+              <img-loader [style.height.px]="80" [src]="menuItem.imageURL" [height]="80" [icon-hidden]="true"></img-loader>
+            </ion-thumbnail>
+
+            <p class="list-header-h2" text-capitalize>{{ menuItem.name }}</p>
+            <p>
+              <ion-note>{{menuItem.description}}</ion-note>
+            </p>
+            <ion-row>
+              <ion-col>
+                <ion-note>
+                  <span>{{ currency[menuItem.currency] }}.</span>&nbsp;
+                  <span>{{ menuItem.price }}</span>
+                </ion-note>
+              </ion-col>
+              <ion-col>
+                <ion-note>{{ menuItem.size }}</ion-note>
+              </ion-col>
+            </ion-row>
+
+            <button class="btn-addToCart" [disabled]="!isCanOrder" ion-button clear item-end icon-left>Add
+              <span>&nbsp;</span>
+              <ion-icon name="cart"></ion-icon>
+            </button>
+          </button>
+        </ion-list>
+      </ng-container>
+
+      <div *ngIf="ShopMenu === null" class="no-content-notice">
+        <h3 ion-text color="danger">
+          No menus for this item here yet...
+        </h3>
+      </div>
+
+    </div>
+  </div>
+</ion-content>

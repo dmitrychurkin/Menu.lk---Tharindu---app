@@ -1,79 +1,75 @@
 <ion-header>
   <ion-navbar no-border-bottom>
     <ion-grid>
-      <ion-row>
-        <!-- <div class="head-layout">
-          <div class="head-item-wrapper"> -->
-            <ion-title>Menu.lk</ion-title>
-          <!-- </div>
-          <div class="head-item-wrapper"> -->
-            <ion-toggle [ngStyle]="{ top: toggleTop, left: toggleLeft, position: CartWidget.itemTotal > 0 ? 'absolute' : 'static' }" color="secondary" [ngModel]="PageDataStore.get(pageConfig.fireConfig.scope)?.isReversed" (ngModelChange)="toggleSort($event)"></ion-toggle>
-          <!-- </div>
-          <div class="head-item-wrapper" [style.width.%]="CartWidget.itemTotal > 0 ? 33.3333 : 0"> -->
-            <app-cart-widget #CartWidget></app-cart-widget>
-          <!-- </div>
-        </div> -->
+      <ion-row nowrap justify-content-between>
+        <ion-title>Menu.lk</ion-title>
+        <ion-toggle color="secondary" [(ngModel)]="dataStore.isCollectionReversed" (ionChange)="toggleSort($event)"></ion-toggle>
+        <div [style.flex]="shoppingCardService.CART_OBJECT_DB && shoppingCardService.CART_OBJECT_DB.TOTAL_ORDERS_IN_CART ? 1 : 0" class="cart-widget-container">
+          <app-cart-widget></app-cart-widget>
+        </div>
       </ion-row>
     </ion-grid>
-  </ion-navbar>
-  <ion-toolbar no-border-top>
-    <ion-segment (ngModelChange)="onIonSegmentSelect($event)" [ngModel]="pageConfig.fireConfig.scope">
-      <ion-segment-button [disabled]="pageConfig.fireConfig.scope === 'catering' && ionSegmentActivated" value="restaurants">restaurants</ion-segment-button>
-      <ion-segment-button [disabled]="pageConfig.fireConfig.scope === 'restaurants' && ionSegmentActivated" value="catering">catering menus</ion-segment-button>
+
+    <ion-segment [ngModel]="currentSegmentValue" (ionChange)="onSegmentChange($event)">
+      <ion-segment-button [disabled]="isSegmentDisabled" [value]="restaurants">restaurants</ion-segment-button>
+      <ion-segment-button [disabled]="isSegmentDisabled" [value]="catering">catering menus</ion-segment-button>
     </ion-segment>
-  </ion-toolbar>
+
+</ion-navbar>
 </ion-header>
 
 
-<ion-content (ionScrollEnd)="scrollHandler()" (ionScroll)="scrollHandler()" padding>
+<ion-content padding>
+<ng-container *ngIf="dataStore.itemCollection.length">
   <ion-list>
-  <ion-card #target *ngFor="let Entity of PageDataStore.get(pageConfig.fireConfig.scope)?.items; let i=index" (tap)="onSelect(Entity)">
-    <!-- <div #imgContainer class="js-image-container-{{i}} image-container">
-      <div class="mock-image-container">
-        <div class="mock">
-            <svg fill="rgba(125, 132, 180, 0.35)" viewBox="0 0 24 24" width="100%" xmlns="http://www.w3.org/2000/svg">
-              <path d="M0 0h24v24H0z" fill="none"/>
-              <path d="M23 18V6c0-1.1-.9-2-2-2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2zM8.5 12.5l2.5 3.01L14.5 11l4.5 6H5l3.5-4.5z"/>
-            </svg> 
-          <ion-icon name="images"></ion-icon>
-        </div>
-      </div>
-      
-    </div>-->
-    <img-loader [id]="Entity._id" [src]="Entity.imageURL" [height]="172" [target]="target"></img-loader>
-    <ion-card-content>
-      <ion-row>
-        <ion-col no-padding>
-          <ion-card-title no-padding>
-            <span class="title"><b>{{Entity.name}}</b></span>
-          </ion-card-title>
-        </ion-col>
-        <ion-col col-5 text-right>
-          <ion-note>
-            <ion-icon name="timer"></ion-icon>
-            <span>under {{Entity.cookingDuration}} min</span>
-          </ion-note>
-        </ion-col>
-      </ion-row>
-      <ion-row>
-        <ion-col no-padding>
-          <ion-note>
+    <ion-card *ngFor="let Entity of dataStore.itemCollection; let i=index" [navPush]="'MenuPage'" [navParams]="Entity">
+
+      <img-loader [src]="Entity.imageURL" [height]="172"></img-loader>
+      <ion-card-content>
+        <ion-row>
+          <ion-col no-padding>
+            <ion-card-title no-padding>
+              <span class="title">
+                <b>{{Entity.name}}</b>
+              </span>
+            </ion-card-title>
+          </ion-col>
+          <ion-col col-5 text-right>
+            <ion-note>
+              <ion-icon name="timer"></ion-icon>
+              <span>under {{Entity.cookingDuration}} min</span>
+            </ion-note>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col no-padding>
+            <ion-note>
               <span>{{Entity.category}}</span>
               <ion-icon name="bulb"></ion-icon>
               <span>{{Entity.takeaway ? 'takeaway' : 'not takeaway'}}</span>
-          </ion-note>
-        </ion-col>
-      </ion-row>
-      <ion-row>
-        <ion-col>
+            </ion-note>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col>
             <ion-icon name="star"></ion-icon>
             <span>{{Entity.rating}}</span>
-        </ion-col>
-      </ion-row>
-    </ion-card-content>
-  </ion-card>
-</ion-list>
-<ion-infinite-scroll (ionInfinite)="loadFromInfinityScroll($event)">
-  <ion-infinite-scroll-content loadingText="Loading more restorants..."></ion-infinite-scroll-content>
-</ion-infinite-scroll>
+          </ion-col>
+        </ion-row>
+      </ion-card-content>
+    </ion-card>
+  </ion-list>
+  <ion-infinite-scroll (ionInfinite)="onInfinityScroll($event)">
+    <ion-infinite-scroll-content loadingText="Loading more restorants..."></ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+</ng-container>
+  <ion-grid *ngIf="dataStore.isDataBeenRequested && !dataStore.itemCollection.length" style="height: 100%">
+    <ion-row style="height: 100%" align-items-center>
+      <ion-col>
+        <ion-note>
+          <h1 padding-horizontal text-center>Seems like no {{ currentSegmentValue === restaurants ? restaurants : (catering + ' services') }} here yet...</h1>
+        </ion-note>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
 </ion-content>

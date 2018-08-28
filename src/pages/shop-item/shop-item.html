@@ -1,0 +1,43 @@
+<ion-header>
+  <ion-navbar no-border-bottom>
+    <ion-grid>
+      <ion-row>
+        <ion-title>Menu.lk</ion-title>
+        <app-cart-widget *ngIf="!requestFromCartPage"></app-cart-widget>
+      </ion-row>
+    </ion-grid>
+  </ion-navbar>
+</ion-header>
+<ion-content>
+    <div class="image-holder" [style.background-image]="backgroundImage"></div>
+    <div class="item-container">
+      <div class="item-header">
+        <h2 text-center>{{ requestFromCartPage ? ItemInCart.name : Order.menu.item.name }}</h2>
+      </div>
+      <p padding-horizontal><ion-note>{{ requestFromCartPage ? ItemInCart.description : Order.menu.item.description }}</ion-note></p>
+      <div class="item-special"><span padding text-uppercase>special instructions</span></div>
+      <div padding>
+        <ion-item>
+          <ion-label color="primary" floating>
+            <ion-icon name="create"></ion-icon>
+            <span>Add a note (extra cheese, no onions, ect.)</span></ion-label>
+          <ion-textarea [(ngModel)]="userSpecialNotes" (ionChange)="onTypingNotes($event)" maxlength="100"></ion-textarea>
+        </ion-item>
+        
+        <div class="spec-notes"><span>&nbsp;</span><span [@opacity]="true" *ngIf="userSpecialNotes" class="user-notes"><ion-note>Your special notes: {{ userSpecialNotes }}</ion-note></span></div>
+      
+        <div class="btn-group">
+          <div class="btn-wrapper">
+            <button ion-button (tap)="onDec(ItemInCart || Order.menu)">-</button>
+            <p class="btn-group-counter">{{requestFromCartPage ? ItemInCart.quantity : Order.menu.quantity}}</p>
+            <button ion-button (tap)="onInc(ItemInCart || Order.menu)">+</button>
+          </div>
+        </div>
+
+        <div class="add-to-cart">
+            <button (tap)="onAction()" ion-button [color]="requestFromCartPage ? 'danger' : 'secondary'" round icon-left>{{ requestFromCartPage ? 'Save changes' : 'Add to Cart' }}<span>&nbsp;</span><ion-icon name="cart"></ion-icon></button>
+        </div>
+
+      </div>
+    </div>
+</ion-content>

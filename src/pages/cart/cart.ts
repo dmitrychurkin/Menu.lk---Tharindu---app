@@ -1,263 +1,276 @@
-import { Component, ElementRef, Renderer2, ViewChild, AfterViewChecked } from '@angular/core';
-import { Checkbox, Events, IonicPage, List, NavController, PopoverController, Content } from 'ionic-angular';
-import { asap } from 'rxjs/Scheduler/asap';
-import { CartWidgetComponent } from '../../components';
-import { Cart, IEntityInCart, IMenuItem } from '../../interfaces';
-import { IDatasetIteratorLambdaObjectInfo, ShoppingCart, StorageProvider } from '../../providers';
-import { APP_EV, Currency, DATABASE_TOKENS, PopoverCartMenuEventFlags, APP_QUICK_ORDER_PAGE, ANGULAR_ANIMATION_OPACITY } from '../pages.constants';
-import { PopoverCartMenu } from './popover-cart-menu/popover-cart-menu';
+import { AfterViewChecked, Component, Injector, QueryList, ViewChild, ViewChildren } from "@angular/core";
+import { Checkbox, Events, IonicPage, NavController, NavParams, PopoverController, ViewController } from "ionic-angular";
+import { asap } from "rxjs/Scheduler/asap";
+import { Cart, IHistoryModalTransferState, IMenuItem } from "../../interfaces";
+import { ShoppingCartService, OrdersManagerService } from "../../services";
+import { APP_EV, APP_QUICK_ORDER_PAGE, APP_SHOP_ITEM_PAGE, Currency, OrderManagmentActionFlag, OrderStatus, PopoverCartMenuEventFlags, FIREBASE_DB_TOKENS } from "../pages.constants";
+import { PopoverCartMenu } from "../popover-cart-menu/popover-cart-menu";
+import CartBaseClass, { IPropsForCalcBtnPosition } from './cart-base.class';
+import { AngularFirestore } from "angularfire2/firestore";
+
+
+const { ORDERS } = FIREBASE_DB_TOKENS;
 
 
 @IonicPage()
 @Component({
   selector: 'page-cart',
-  templateUrl: 'cart.html',
-  animations: ANGULAR_ANIMATION_OPACITY
+  templateUrl: 'cart.html'
 })
-export class CartPage implements AfterViewChecked {
-  @ViewChild('QuckOrder', { read: ElementRef }) areaQuickOrder: ElementRef;
-  @ViewChild(Content) content: Content;
-  @ViewChild('Title', { read: ElementRef }) title: ElementRef;
-  @ViewChild('MasterCheckBox') masterCheckBox: Checkbox;
-  @ViewChild(List) list: List;
-  @ViewChild(CartWidgetComponent) cartWidget: CartWidgetComponent;
-  itemDeleteCounter = 0;
-  isSingleValueCheckboxBeenAct = false;
-  Cart: Array<IEntityInCart>;
-  currency = Currency;
-  isDeleteModeEnabled = false;
-  titleDesc = '';
-  animator: ICheckBox = CHECKBOXES_DEFAULT_STYLES;
-  s = PopoverCartMenuEventFlags;
+export class CartPage extends CartBaseClass implements AfterViewChecked {
 
-  private _deleteModeFnCallback: Function;
-  buttonPosition: string;
+
+  @ViewChild('MasterCheckBox') masterCheckBox: Checkbox;
+  @ViewChildren('ItemCheckBox') ionChBoxes: QueryList<Checkbox>;
+  
+  private _isMasterCheckboxActivated = false;
+  
   private _isQuickOrderPageActivated: boolean;
+  private _isShopItemPageActivated: boolean;
+  private _isActionBtnClicked: boolean;
+
+  currency = Currency;
+
+  OrderStatus = OrderStatus;
+  OrderManagmentActionFlag = OrderManagmentActionFlag;
+
+  mode: 'modal' | 'normal';
+  orderId: string;
 
   constructor(
-    private _navCtrl: NavController,
-    private _renderer2: Renderer2,
-    private _events: Events,
-    private _popoverCtrl: PopoverController,
-    private _shoppingCartCtrl: ShoppingCart,
-    private _storageProvider: StorageProvider) {
-    this._getItems();
+    private readonly _navCtrl: NavController,
+    private readonly _viewCtrl: ViewController,
+    private readonly _events: Events,
+    private readonly _popoverCtrl: PopoverController,
+    private readonly _ordersManagerService: OrdersManagerService,
+    private readonly _angularFirestore: AngularFirestore,
+    readonly shoppingCartService: ShoppingCartService,
+    readonly navParams: NavParams,
+    injector: Injector) { 
+      super(injector); 
+
+      const { mode= 'normal' } = <IHistoryModalTransferState>this.navParams.data;
+      this.mode = mode;
+      if (mode === 'modal') {
+        this.orderId = this.navParams.data.orderInfo.id;
+      }
+    }
+
+  get Service(): Cart {
+
+    return this.mode === 'modal' ? (<IHistoryModalTransferState>this.navParams.data).orderContent : this.shoppingCartService.CART_OBJECT_DB;
+
   }
-  onQuickOrderPage() {
+
+  get opacity() {
+
+    if (this.pageWillLeave) {
+
+      return 0;
+
+    }
+
+    return this.buttonPosition ? 1 : 0;
+    
+  }
+
+  async modalAction(ACTION_FLAG: OrderManagmentActionFlag) {
+
+    if (this._isActionBtnClicked) return;
+    this._isActionBtnClicked = true;
+    
+    switch (ACTION_FLAG) {
+
+      case OrderManagmentActionFlag.CLOSE_MODAL:
+        await this._viewCtrl.dismiss();
+      break;
+
+      default:
+        await this._ordersManagerService.dispatchOrderAction(ACTION_FLAG, this.navParams.data.orderInfo);
+
+    }
+    
+    if (!this.navParams.data.orderInfo) return;
+
+    const documentSnapshot = await this._angularFirestore.doc(`${ORDERS}/${this.navParams.data.orderInfo.id}`).ref.get();
+    
+    if (ACTION_FLAG == OrderManagmentActionFlag.RESTORE || ACTION_FLAG == OrderManagmentActionFlag.CANCEL) {
+
+      Object.assign(this.navParams.data.orderInfo, documentSnapshot.data());
+
+    }else if (ACTION_FLAG == OrderManagmentActionFlag.DELETE) {
+
+      this.navParams.data.orderInfo = this.navParams.data.orderContent = documentSnapshot.data();
+
+    }
+    
+  
+    delete this._isActionBtnClicked;
+
+  }
+
+  onViewOrder(Item: IMenuItem) {
+   
+    if (this._isShopItemPageActivated || this.mode === 'modal') return;
+
+    this._isShopItemPageActivated = true;
+
+    this._navCtrl.push(APP_SHOP_ITEM_PAGE, Item);
+
+  }
+
+  onSelectAll(masCheckbox?: Checkbox): void {
+
+    if (this.animator.isLocked || 
+      !this.masterCheckBox || 
+      !this.shoppingCartService.CART_OBJECT_DB.TOTAL_ORDERS_IN_CART) return;
+
+    this._isMasterCheckboxActivated = true;
+
+    this.masterCheckBox.checked = !masCheckbox ? false : !masCheckbox.checked;
+    const { checked } = this.masterCheckBox;
+
+    const { length } = this.ionChBoxes;
+    this._calculateItemDeleteCounter(checked ? length : 0);
+    this.ionChBoxes.forEach((checkbox: Checkbox) => checkbox.checked = checked);
+  
+    this._isMasterCheckboxActivated = false;
+
+  }
+
+  onDelete(Item?: IMenuItem, objToCalcBtnPosition?: IPropsForCalcBtnPosition) {
+
+    this._setPositionQuickOrderBtn(objToCalcBtnPosition);
+
+    if (Item) {
+
+      Item.meta.itemMarkForDelete = true;
+
+    }
+    
+    if (this.masterCheckBox) {
+
+      this.pageWillLeave = this.masterCheckBox.checked;
+      this.masterCheckBox.checked = false;
+
+    }else {
+
+      this.pageWillLeave = (Item && Item.quantity == this.shoppingCartService.CART_OBJECT_DB.TOTAL_ORDERS_IN_CART);
+
+    }
+
+    this._calculateItemDeleteCounter(0);
+    
+    this.shoppingCartService.removeFromCart(Item, this.pageWillLeave)
+        .then(() => {
+
+          if (this.pageWillLeave) {
+
+            return asap.schedule(() => this._navCtrl.isActive(this._viewCtrl) && this._navCtrl.pop(), 1000);
+          
+          }
+
+        });
+
+  }
+
+  onCancelAll() {
+
+    this.onSelectAll();
+    
+    this.list && this.list.closeSlidingItems();
+
+  }
+
+  onSelectSingle({ checked }: Checkbox): void {
+
+    if (this._isMasterCheckboxActivated) return;
+
+    this._calculateItemDeleteCounter(1, checked);
+    this.masterCheckBox.checked = this.itemDeleteCounter == this.ionChBoxes.length;
+
+  }
+
+  onQuickOrderPage() { 
+
+    if (this._isQuickOrderPageActivated ||
+        !parseInt(this.areaQuickOrder.nativeElement.style.opacity) || 
+        this.animator.isLocked || 
+        !this.shoppingCartService.CART_OBJECT_DB.TOTAL_ORDERS_IN_CART) {
+
+          return;
+    }
+
     this.list.closeSlidingItems();
     this._isQuickOrderPageActivated = true;
     this._navCtrl.push(APP_QUICK_ORDER_PAGE);
   }
+
   ngAfterViewChecked() {
-    asap.schedule(() => this._setPositionBtn());
-  }
-  private _setPositionBtn() {
-    try {
-      if (this.content && this.areaQuickOrder && this.list && this.content.contentHeight > 0) {
-        const btnHeight = this.areaQuickOrder.nativeElement.offsetHeight;
-        const listHeight = this.list.getNativeElement().offsetHeight;
-        this.buttonPosition = (listHeight + btnHeight + 100 < this.content.contentHeight) ?
-            'absolute' : 'static';
-      }
-    }catch(err) {}
-  }
+    
+    if (typeof this._checkboxResolver === 'function' && this.ionChBoxes && this.ionChBoxes.length) {
+      
+      this._checkboxResolver();
+      delete this._checkboxResolver;
 
-  onSelectSingle(Item: IMenuItem, $event: Checkbox) {
-    if ($event.value) {
-      this._addOne();
-      let isAllCheckBoxesChecked = true;
-      this._shoppingCartCtrl.datasetIterator(({ menuItem }: IDatasetIteratorLambdaObjectInfo) => {
-        if (isAllCheckBoxesChecked && !menuItem.meta.itemMarkForDelete) {
-          isAllCheckBoxesChecked = false;
-        }
-      }, this.Cart);
-      if (isAllCheckBoxesChecked) {
-        this.masterCheckBox.checked = true;
-      }
-    } else {
-      this._deductOne();
-      const { value } = this.masterCheckBox;
-      if (value) {
-        this.isSingleValueCheckboxBeenAct = true;
-        this.masterCheckBox.checked = false;
-      }
     }
-  }
-
-  onCancelAll() {
-    this.masterCheckBox.checked = false;
-    this.onSelectAllChange(this.masterCheckBox);
-    this.ionViewWillLeave();
-  }
-
-  onSelectAllChange($event: Checkbox) {
-    if (this.isSingleValueCheckboxBeenAct) {
-      this.isSingleValueCheckboxBeenAct = false;
-      return;
-    }
-    this._shoppingCartCtrl.datasetIterator(({ menuItem }: IDatasetIteratorLambdaObjectInfo, $event: Checkbox) => {
-      if ($event.value && !menuItem.meta.itemMarkForDelete) {
-        this._addOne();
-        menuItem.meta.itemMarkForDelete = true;
-      } else if (!$event.value && menuItem.meta.itemMarkForDelete) {
-        this._deductOne();
-        menuItem.meta.itemMarkForDelete = false;
-      }
-    }, this.Cart, $event);
-  }
-
-  onSelectAll(masterCheckBox: Checkbox) {
-    const { value } = masterCheckBox;
-
-    masterCheckBox.checked = !value;
-  }
-
-  onDeleteItemSet() {
-
-    this._shoppingCartCtrl.removeFromCart(this.Cart)
-      .then(() => {
-        this.masterCheckBox.checked = !!(this.itemDeleteCounter = 0);
-        this.ionViewWillLeave();
-        this._leaveCartPage()
-      });
-  }
-
-  onDeleteItem(Item: IMenuItem) {
-    this._shoppingCartCtrl.removeFromCart(Item, this.Cart)
-      .then(() => this._leaveCartPage());
-  }
-
-  deleteModeHandler() {
-    return (popoverFlag: PopoverCartMenuEventFlags) => {
-
-      if (!this._isQuickOrderPageActivated) {
-        this._renderer2.addClass(this.title.nativeElement, 'remove');
-      }
-
-      switch (popoverFlag) {
-        case this.s.DELETE: {
-          this.list.sliding = !(this.isDeleteModeEnabled = true);
-
-          asap.schedule(() => this.titleDesc = this.s.DELETE, 500);
-
-          asap.schedule(() => {
-            this.animator = CHECKBOXES_DELETE_STYLES;
-            asap.schedule(() => this.animator.transform = 'none', 750);
-          }, 100);
-          this.list.closeSlidingItems();
-          break;
-        }
-        case this.s.CANCEL: {
-
-          this.animator = CHECKBOXES_DEFAULT_STYLES;
-
-          asap.schedule(() => this.titleDesc = this.s.CANCEL, 500);
-
-          asap.schedule(() => {
-            if (this.list) {
-              this.list.sliding = !(this.isDeleteModeEnabled = false);
-            }
-            asap.schedule(() => this.cartWidget && (this.cartWidget.buttonDisabled = true));
-          }, 750);
-          break;
-        }
-      }
-    };
+    
   }
 
   presentPopover($event: any) {
+    
+    if (this.animator.isLocked || !this.shoppingCartService.CART_OBJECT_DB.TOTAL_ORDERS_IN_CART) return;
+
     this._popoverCtrl.create('PopoverCartMenu')
       .present({ ev: $event });
-  }
-  
-  ionViewDidLoad() {
-    this.cartWidget.buttonDisabled = true;
 
-    if (typeof this._deleteModeFnCallback !== 'function') {
-      this._deleteModeFnCallback = this.deleteModeHandler();
-      this._events.subscribe(APP_EV.DELETE_CART_MODE, this._deleteModeFnCallback);
+  }
+
+  ionViewDidEnter() {
+    
+    if (this.areaQuickOrder) {
+
+      this._quickOrderButtonElement = this.areaQuickOrder.nativeElement;
+
     }
+    
+    this._setPositionQuickOrderBtn();
+  }
+
+  ionViewDidLoad() {
+
+    this._events.subscribe(APP_EV.DELETE_CART_MODE, this._deleteModeFnCallback);
   }
 
   ionViewWillEnter() {
-    this._isQuickOrderPageActivated = false;
+    
+    delete this._isShopItemPageActivated;
+    delete this._isQuickOrderPageActivated;
+    delete this.pageWillLeave;
+    delete this.STATE;
+    delete this.STATE_1;
+    delete this._isActionBtnClicked;
+
   }
 
   ionViewWillLeave() {
-    this._deleteModeFnCallback(PopoverCartMenuEventFlags.CANCEL);
+    
+    this.onCancelAll();
     PopoverCartMenu.state = PopoverCartMenuEventFlags.DELETE;
+    this._sub && this._sub.unsubscribe();
+    this._sub = undefined;
+
   }
 
   ionViewWillUnload() {
-    if (typeof this._deleteModeFnCallback === 'function') {
-      this._events.unsubscribe(APP_EV.DELETE_CART_MODE, this._deleteModeFnCallback);
-    }
-  }
-
-  private _addOne() {
-    if (this.itemDeleteCounter + 1 <= this._getItemsCountInCart) {
-      this.itemDeleteCounter += 1;
-    }
-  }
-
-  private _deductOne() {
-    if (this.itemDeleteCounter - 1 >= 0) {
-      this.itemDeleteCounter -= 1;
-    }
-  }
-
-  private _leaveCartPage() {
-    if (this._getItemsCountInCart == 0) {
-      asap.schedule(() => this._navCtrl.pop(), 1000);
-    }
-  }
-
-  private get _getItemsCountInCart() {
-    let totalItems = 0;
-    this._shoppingCartCtrl.datasetIterator(({ menuItem }: IDatasetIteratorLambdaObjectInfo) => {
-      if (menuItem._id) {
-        totalItems++;
-      }
-    }, this.Cart);
-    return totalItems;
-  }
-
-  private _setMetaProps(Cart: IEntityInCart[]) {
-    this._shoppingCartCtrl.datasetIterator(({ menuItem }: IDatasetIteratorLambdaObjectInfo) => {
-      if (typeof menuItem.meta !== 'object') {
-        menuItem.meta = { itemMarkForDelete: false };
-      }
-    }, Cart);
-  }
-
-  private _getItems() {
-    return this._storageProvider.getItem(DATABASE_TOKENS.SHOPPING_CART)
-      .then((CartEntity: Cart) => {
-        this.Cart = CartEntity.CART;
-        this._setMetaProps(this.Cart);
-      });
+    
+    this._events.unsubscribe(APP_EV.DELETE_CART_MODE, this._deleteModeFnCallback);
+    this.ionViewWillEnter();
+    
   }
 
 }
 
-const CHECKBOXES_DEFAULT_STYLES = {
-  width: '0',
-  marginLeft: '0',
-  marginRight: '0',
-  transform: 'translateX(-1000%)',
-  transition: 'transform 500ms, width 500ms 250ms, margin-left 500ms 250ms, margin-right 500ms 250ms'
-};
-const CHECKBOXES_DELETE_STYLES = {
-  marginLeft: '4px',
-  marginRight: '20px',
-  width: '5%',
-  transform: 'translateX(0)',
-  transition: 'transform 500ms 250ms, width 500ms, margin-left 500ms, margin-right 500ms'
-};
 
-interface ICheckBox {
-  marginLeft: string;
-  marginRight: string;
-  width: string;
-  transform: string;
-}
+
+

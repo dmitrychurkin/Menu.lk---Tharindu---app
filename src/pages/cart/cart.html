@@ -1,66 +1,77 @@
 <ion-header>
-  <ion-navbar color="primary">
+  <ion-navbar *ngIf="mode !== 'modal'; else Toolbar" color="primary">
     <div class="sintetic-grid">
-      <ng-container [ngSwitch]="titleDesc">
-        <div class="sintetic-grid title" #Title *ngSwitchCase="s.DELETE">
-          <ion-checkbox color="danger" #MasterCheckBox (ionChange)="onSelectAllChange($event)"></ion-checkbox>
-          <button ion-button color="danger" (tap)="onSelectAll(MasterCheckBox)" clear>Delete All</button>
+      <ng-container [ngSwitch]="STATE">
+        <div class="sintetic-grid css-animator js-token" *ngSwitchCase="s.DELETE">
+          <button ion-button clear (tap)="onSelectAll(MasterCheckBox)" class="clicker"></button>
+          <ion-checkbox color="danger" #MasterCheckBox></ion-checkbox>
+          <button ion-button color="danger" clear>Delete All</button>
         </div>
-        <ion-title #Title class="title" *ngSwitchDefault>Cart</ion-title>
+        <ion-title [class.css-animator]="STATE" class="js-token" *ngSwitchDefault>Cart</ion-title>
       </ng-container>
 
-      <app-cart-widget *ngIf="!isDeleteModeEnabled; else CartWidget"></app-cart-widget>
+      <app-cart-widget [class.css-animator]="STATE" class="js-token" [disabled]="true" [show]="'price'" *ngIf="!STATE || STATE === s.CANCEL; else CartWidget"></app-cart-widget>
       <ng-template #CartWidget>
-        <p text-uppercase ion-text color="danger" *ngIf="itemDeleteCounter > 0">
+        <p text-uppercase ion-text color="danger" class="js-btns css-animator" *ngIf="STATE_1 === s.DELETE">
           <strong>{{itemDeleteCounter}} selected</strong>
         </p>
       </ng-template>
 
       <ion-buttons>
-        <ng-container *ngIf="itemDeleteCounter > 0; else ButtonMore">
-          <button (tap)="onDeleteItemSet()" color="danger" ion-button icon-only>
+        <span [class.css-animator]="!pageWillLeave" class="js-btns" *ngIf="STATE_1 === s.DELETE">
+          <button (tap)="onDelete()" color="danger" ion-button icon-only>
             <ion-icon name="trash"></ion-icon>
           </button>
           <button (tap)="onCancelAll()" color="secondary" ion-button icon-only>
             <ion-icon name="close-circle"></ion-icon>
           </button>
-        </ng-container>
-        <ng-template #ButtonMore>
-          <button ion-button icon-only (tap)="presentPopover($event)">
-            <ion-icon name="more"></ion-icon>
-          </button>
-        </ng-template>
+        </span>
+        
+        <button [class.css-animator]="!pageWillLeave && STATE_1" class="js-btns" ion-button icon-only (tap)="presentPopover($event)" *ngIf="!STATE_1 || STATE_1 === s.CANCEL">
+          <ion-icon name="more"></ion-icon>
+        </button>
       </ion-buttons>
     </div>
   </ion-navbar>
+
+  <ng-template #Toolbar>
+    <ion-toolbar>
+      <ion-title>Order: {{ orderId }}</ion-title>
+      <ion-buttons start>
+        <button (tap)="modalAction(OrderManagmentActionFlag.CLOSE_MODAL)" ion-button icon-only>
+          <ion-icon name="close"></ion-icon>
+        </button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ng-template>
 
 </ion-header>
 
 
 <ion-content>
-  <ng-container *ngIf="Cart?.length > 0; else CartEmpty">
-    <ion-list *ngFor="let Entity of Cart" no-lines>
+  <ng-container *ngIf="Service?.CART.length > 0; else CartEmpty">
+    <ion-list *ngFor="let Entity of Service.CART" no-lines [sliding]="mode !== 'modal'">
       <ion-list-header text-uppercase sticky no-lines>
         <h2>{{Entity.entityName}}</h2>
       </ion-list-header>
       <ion-item-group *ngFor="let EntityOrder of Entity.orders">
-        <ion-item-divider color="light" no-lines>{{EntityOrder.type}}
+        <ion-item-divider #ionItemDivider color="light" no-lines>{{EntityOrder.type}}
           <ng-container *ngIf="EntityOrder.subhead">|
             <i>{{EntityOrder.subhead}}</i>
           </ng-container>
         </ion-item-divider>
-        <ion-item-sliding *ngFor="let Item of EntityOrder.items">
-          <ion-item *ngIf="isDeleteModeEnabled; else DeleteDisabledTemplate">
-            <ion-checkbox color="danger" class="delete-mode" [(ngModel)]="Item.meta.itemMarkForDelete" [ngStyle]="animator" (ionChange)="onSelectSingle(Item, $event)"></ion-checkbox>
+        <ion-item-sliding *ngFor="let Item of EntityOrder.items as items; index as itemsIndex">
+          <ion-item class="item" *ngIf="STATE === s.DELETE; else DeleteDisabledTemplate">
+            <ion-checkbox #ItemCheckBox [ngStyle]="checkboxStyles.out" color="danger" class="delete-mode js-checkboxes" [(ngModel)]="Item.meta.itemMarkForDelete" (ionChange)="onSelectSingle($event)"></ion-checkbox>
             <ion-label>
               <div class="label-wrapper">
                 <ion-avatar item-start>
                   <img [src]="Item.imageURL">
                 </ion-avatar>
 
-                <div>
-                  <h2 text-capitalize>{{Item.name}}</h2>
-                  <h3 *ngIf="Item.quantity > 1">Ordered {{Item.quantity}} items</h3>
+                <div class="label-content">
+                  <h2 text-capitalize class="content-adjust">{{Item.name}}</h2>
+                  <h3 *ngIf="Item.quantity > 1" class="content-adjust">Ordered {{Item.quantity}} items</h3>
                   <p class="item-desc">
                     <ion-note>{{Item.userNotes}}</ion-note>
                   </p>
@@ -70,19 +81,19 @@
                       <span>{{currency[Item.currency]}}.</span>&nbsp;
                       <span>{{Item.price * Item.quantity}}</span>
                     </ion-note>
-                    <ion-note>{{Item.size}}</ion-note>
+                    <ion-note [style.padding-left.%]="5">{{Item.size}}</ion-note>
                   </div>
                 </div>
               </div>
             </ion-label>
           </ion-item>
           <ng-template #DeleteDisabledTemplate>
-            <ion-item>
+            <button [attr.detail-none]="mode === 'modal' ? '' : null" ion-item #ionItem class="item" (tap)="onViewOrder(Item)">
               <ion-avatar item-start>
                 <img [src]="Item.imageURL">
               </ion-avatar>
-              <h2 text-capitalize>{{Item.name}}</h2>
-              <h3 *ngIf="Item.quantity > 1">Ordered {{Item.quantity}} items</h3>
+              <h2 text-capitalize class="content-adjust">{{Item.name}}</h2>
+              <h3 *ngIf="Item.quantity > 1" class="content-adjust">Ordered {{Item.quantity}} items</h3>
               <p class="item-desc">
                 <ion-note>{{Item.userNotes}}</ion-note>
               </p>
@@ -94,11 +105,11 @@
                 </ion-note>
                 <ion-note>{{Item.size}}</ion-note>
               </div>
-            </ion-item>
+            </button>
           </ng-template>
 
           <ion-item-options side="left">
-            <button (tap)="onDeleteItem(Item)" ion-button color="danger">
+            <button (tap)="onDelete(Item, { deviderElem: ionItemDivider, itemsLength: items.length, index: itemsIndex })" ion-button color="danger">
               <ion-icon name="trash"></ion-icon>
               Delete
             </button>
@@ -114,11 +125,20 @@
       </ion-note>
     </div>
   </ng-template>
-  <ion-grid #QuckOrder [@animator]="'in'" *ngIf="Cart?.length > 0 && !isDeleteModeEnabled" [ngStyle]="{ position: buttonPosition, bottom: '50px' }" fixed>
+  <ion-grid [class.css-animator]="Service.TOTAL_ORDERS_IN_CART && STATE" class="ion-grid-btn js-token" #QuickOrder *ngIf="mode !== 'modal' && (!STATE || STATE === s.CANCEL)" [ngStyle]="{ position: buttonPosition, opacity: opacity }" fixed>
       <ion-row nowrap justify-content-center>
         <ion-col col-auto align-self-center>
-            <button class="btn-quick-order" (tap)="onQuickOrderPage()" ion-button round icon-left>quick order<span>&nbsp;</span><ion-icon name="archive"></ion-icon></button>
+            <button class="btn-quick-order" (tap)="onQuickOrderPage()" ion-button round icon-end>quick order<span>&nbsp;</span><ion-icon name="archive"></ion-icon></button>
         </ion-col>
       </ion-row>
   </ion-grid>
+  <ion-fab *ngIf="mode === 'modal'" right bottom>
+    <button ion-fab><ion-icon name="arrow-dropleft"></ion-icon></button>
+    <ion-fab-list side="left">
+      <button *ngIf="Service && navParams.data.orderInfo?.orderStatus > OrderStatus.DELIVERY" (tap)="modalAction(OrderManagmentActionFlag.DELETE)" color="danger" ion-fab><ion-icon name="trash"></ion-icon></button>
+      <button *ngIf="Service && navParams.data.orderInfo?.orderStatus < OrderStatus.DELIVERY" (tap)="modalAction(OrderManagmentActionFlag.CANCEL)" color="danger" ion-fab><ion-icon name="remove-circle"></ion-icon></button>
+      <button *ngIf="Service && navParams.data.orderInfo?.orderStatus == OrderStatus.CANCELLED" (tap)="modalAction(OrderManagmentActionFlag.RESTORE)" color="secondary" ion-fab><ion-icon name="undo"></ion-icon></button>
+      <button (tap)="modalAction(OrderManagmentActionFlag.CLOSE_MODAL)" color="primary" ion-fab><ion-icon name="close-circle"></ion-icon></button>
+    </ion-fab-list>
+  </ion-fab>
 </ion-content>

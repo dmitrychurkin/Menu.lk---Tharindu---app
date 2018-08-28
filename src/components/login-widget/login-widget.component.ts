@@ -20,34 +20,32 @@ export class LoginWidgetComponent {
 
   @Output('signInTypeSelected') signInStrategy = new EventEmitter<ISignInMeta>(true);
 
-  buttons = [
+  buttons: Array<any> = [
     {
       txtColor: '#736868',
       btnColor: '#f4f4f4',
       name: 'google',
-      ico: 'logo-google',
-      //upcase: true
+      ico: 'logo-google'
     },
     {
       txtColor: '#f4f4f4',
       btnColor: '#f53d3d',
       name: 'email',
-      ico: 'mail',
-      //upcase: false
+      ico: 'mail'
     },
     {
       txtColor: '#222',
       btnColor: '#fec900',
       name: 'try the app without login',
-      custom: true,
-     //upcase: true
+      custom: true
     }
   ];
 
 
   signIn(flag: number) {
-    // authProvider.signIn(i);
+
     this.signInStrategy.emit({ flag });
+    
   }
 }
 

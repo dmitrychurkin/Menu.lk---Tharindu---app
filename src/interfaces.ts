@@ -1,90 +1,121 @@
-import { QueryFn } from "angularfire2/database";
+import { Timestamp } from "@firebase/firestore-types";
+import { OrderStatus } from "./pages/pages.constants";
+import { User } from "firebase";
+
 
 type DataURL = string;
+type CollectionType = 'restaurants' | 'catering';
+export type CurrencyType = 'US' | 'LAKR';
+
 interface Base {
-  name: string;
-  imageURL: DataURL;
-  _id: string;
-}
-export interface IRestaurants extends Base {
-  category: string;
-  cookingDuration: number;
-  rating: number;
-  takeaway: boolean;
-  type: string;
-  workingTime: Array<string> | { open: string; close: string };
+    name: string;
+    imageURL: DataURL;
+    id: string;
 }
 
-type IMenuCard = Array<IMenuType>;
+export interface IRestaurants extends Base {
+    collection: CollectionType;
+    category: string;
+    cookingDuration: number;
+    rating: number;
+    takeaway: boolean;
+    type: string;
+    workingTime: Array<string> | { open: string; close: string };
+}
+
 export interface IMenuType {
-  type: string; 
-  subhead?: string; 
-  items: Array<IMenuItem>
+    type: string;
+    subhead?: string;
+    items: Array<IMenuItem>
 }
 
 export interface IMenuItem extends Base {
-  size?: string;
-  description?: string;
-  currency: 'US' | 'LAKR';
-  price: number | string;
-  quantity?: number;
-  userNotes?: string;
-  meta?: {
-    itemMarkForDelete: boolean;
-  }
+    size?: string;
+    description?: string;
+    currency: CurrencyType;
+    price: number;
+    quantity?: number;
+    userNotes?: string;
+    meta?: {
+        itemMarkForDelete: boolean;
+    }
 }
 
-export type Cart = { TOTAL_ORDERS_IN_CART: number, CART: Array<IEntityInCart> };
 export interface IEntityInCart {
-  id: string;
-  entityName: string;
-  orders: Array<IMenuType>
+    id: string;
+    entityName: string;
+    collection: CollectionType;
+    orders: Array<IMenuType>
 }
 
 export interface IOrder {
-  id: string;
-  entityName: string;
-  // entityImage: DataURL;
-  menu: {
-    type: string;
-    subhead?: string;
-    item: IMenuItem;
-    quantity: number;
-    userNotes?: string;
+    collection: CollectionType;
+    id: string;
+    entityName: string;
+    menu: {
+      type: string;
+      subhead?: string;
+      item: IMenuItem;
+      quantity: number;
+      userNotes?: string;
+    }
   }
+
+export type Cart = { 
+    TOTAL_ORDERS_IN_CART: number, 
+    TOTAL_COST: number, 
+    CURRENCY?: CurrencyType,
+    CART: Array<IEntityInCart> 
+};
+
+export interface IQuickOrder {
+    id?: string;
+    price: number;
+    currency: CurrencyType;
+    uid: string;
+    timestamp: Timestamp | Date;
+    orderStatus: OrderStatus;
+    isAnonymous: boolean;
+    userData: {
+        address: string;
+        name: string;
+        phone: string;
+        email: string;
+        notes: string;
+    },
+    cancelledFromState?: OrderStatus; // -> for redo cancellation
 }
 
-export interface IPageConfig extends IApiConfig {
-  job?: (...args: any[]) => any;
-  withPreloader?: boolean;
+export interface IProfileUserData {
+    userName: string;
+    userPhone?: string;
+    userEmail?: string;
+    userAddress?: string;
+    userPhotoURL?: DataURL;
 }
 
-export interface IHttpConfig {
-  url: string;
-  method?: "DELETE" | "GET" | "HEAD" | "JSONP" | "OPTIONS";
-  headers?: any;
-  reportProgress?: boolean;
-  params?: any;
-  responseType?: 'arraybuffer' | 'blob' | 'json' | 'text';
-  withCredentials?: boolean;
-  withPreloader?: boolean;
-  isNeedSuccess?: boolean;
-  lastKey?: string;
+export type FormUserTemplateData = {
+    icon: string;
+    label: string;
+    type: string;
+    control: string;
+    model: string;
+    mappedDbName?: string;
+    validators: {
+        required?: boolean;
+        minlength?: string;
+        maxlength?: string;
+        pattern?: string;
+    };
+}[];
+
+export interface IAuthUserPayload {
+    readonly userData: User | null;
+    readonly userProfileData?: IProfileUserData | undefined;
 }
 
-export interface IFireConfig {
-  scope: string;
-  childRef?: string;
-  batchSize?: number;
-  lastKey?: string;
-  queryFn?: null | ((key: string, batchSize: number, lastKey?: string) => QueryFn);
-}
-
-export interface IApiConfig {
-  fireConfig?: IFireConfig;
-  httpConfig?: IHttpConfig;
-}
-
-export interface IPwdAuthUserData {
-  userName: string;
+export interface IHistoryModalTransferState {
+    readonly mode: 'modal';
+    readonly orderInfo: IQuickOrder;
+    readonly orderContent: Cart;
 }

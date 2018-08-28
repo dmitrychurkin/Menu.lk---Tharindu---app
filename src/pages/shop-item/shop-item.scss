@@ -1,0 +1,62 @@
+page-shop-item {
+  $shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12);
+  .scroll-content {
+    transition: .3s;
+  }
+  .item-header {
+    font-weight: bold;
+    h2 {
+      margin-top: 1rem;
+    }
+  }
+  @include sub-page-layout($selector-name: item);
+  .image-holder {
+    filter: blur(3px);
+    position: relative;
+    top: 0;
+  }
+  .item-container {
+    margin-top: 0;
+  }
+  .item-special {
+    background-color: #c5c5c5;
+  }
+  
+  .btn-group {
+    .btn-wrapper {
+      @include create-flex-grid($justify-content: space-between);
+      background-color: color($colors, primary);
+      width: 140px;
+      box-shadow: $shadow;
+      margin: auto;
+      font-weight: bold;
+      
+      button {
+        width: 45px;
+        box-shadow: none;
+      }
+      .btn-group-counter {
+        color: #fff;
+      }
+    }
+  }
+  .spec-notes {
+    position: relative;
+    bottom: -5px;
+    height: 68px;
+    .user-notes {
+      font-style: italic;
+    }
+  }
+
+  .add-to-cart {
+    margin-top: 15px;
+    @include create-flex-grid;
+    button {
+      width: 70%;
+      height: 50px;
+      font-size: 2rem;
+    }
+  }
+}
+

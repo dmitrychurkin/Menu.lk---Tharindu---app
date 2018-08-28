@@ -1,0 +1,47 @@
+<ion-header>
+  <ion-navbar>
+    <ion-title>Menu.lk</ion-title>
+  </ion-navbar>
+</ion-header>
+<ion-content padding>
+  <ion-grid fixed>
+    <ion-row justify-content-center align-items-center nowrap>
+      <ion-col col-auto>
+        <h2 text-capitalize>quick order</h2>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col>
+        <form #form="ngForm" (ngSubmit)="onQuickOrder(form)">
+          <ion-list>
+            <ng-container *ngFor="let itemField of formTemplateData.slice(0, -1); index as i">
+              <ion-item no-padding>
+                <ion-label color="primary" floating>
+                  <ion-icon [name]="itemField.icon"></ion-icon>
+                  <ion-note text-capitalize>{{itemField.label}}</ion-note>
+                </ion-label>
+
+                <ion-input #tempVar [type]="itemField.type" (ionChange)="uiCtrl($event)" (ionFocus)="uiCtrl($event)" (ionBlur)="uiCtrl($event)"
+                  [(ngModel)]="itemField.model" [name]="itemField.control" [required]="itemField.validators.required" [pattern]="itemField.validators.pattern" [minlength]="itemField.validators.minlength"
+                  [maxlength]="itemField.validators.maxlength"></ion-input>
+              </ion-item>
+              <span><span ion-text color="danger" [@opacity]="true" *ngIf="tempVar.ngControl.invalid && (tempVar.ngControl.touched || tempVar._isFocus)">{{tempVar.getNativeElement().firstElementChild.validationMessage}}</span>&nbsp;</span>
+            </ng-container>
+            <ion-item no-padding>
+              <ion-label color="primary" floating>
+                <ion-icon [name]="formTemplateData.slice(-1)[0].icon"></ion-icon>
+                <ion-note text-capitalize>{{formTemplateData.slice(-1)[0].label}}</ion-note>
+              </ion-label>
+              <ion-textarea (ionChange)="onAjustHeight($event)" (ionFocus)="uiCtrl($event)" (ionBlur)="uiCtrl($event)" [(ngModel)]="formTemplateData.slice(-1)[0].model" [name]="formTemplateData.slice(-1)[0].control"
+                [maxlength]="formTemplateData.slice(-1)[0].validators.maxlength"></ion-textarea>
+            </ion-item>
+          </ion-list>
+
+          <div class="btn-holder">
+            <button type="submit" class="btn-order-now" [disabled]="!form.valid || isQuickOrderSent" ion-button color="dark" outline round>order now</button>
+          </div>
+        </form>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>

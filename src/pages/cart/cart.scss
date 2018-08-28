@@ -1,30 +1,54 @@
 page-cart {
-  .title {
-    transition: .5s;
-    animation: appear .5s ease-in-out;
-    &.remove {
-      opacity: 0;
+  
+  .sintetic-grid {
+    @include create-flex-grid($justify-content: space-between);
+    position: relative;
+
+    .clicker {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      z-index: 1000;
     }
   }
+
   .delete-mode {
     overflow: hidden;
   }
-  .notes-layout, .label-wrapper {
-    display: flex;
-    ion-avatar {
-      align-self: center;
-    }
-    .item-desc {
+  ion-item.item, [ion-item].item {
+    height: 106px;
+    .item-desc, .content-adjust {
       text-overflow: ellipsis;
       white-space: nowrap;
       overflow: hidden;
-      width: calc(100vw - 150px);
+    }
+    .notes-layout, .label-wrapper {
+      display: flex;
+      .label-content {
+        display: inherit;
+        flex-flow: column nowrap;
+        justify-content: center;
+      }
+      ion-avatar {
+        align-self: center;
+      }
+      
+      .item-desc, .content-adjust {
+        width: calc(100vw - 150px);
+      }
     }
   }
-  
-  .btn-quick-order {
-    height: 50px;
-    font-size: 2rem;
+  .ion-grid-btn {
+    transition: opacity .5s;
+    bottom: 20px;
+    .btn-quick-order {
+      height: 50px;
+      font-size: 2rem;
+    }
+    .btn {
+      display: block;
+      margin: 0 auto;
+    }
   }
 
 }

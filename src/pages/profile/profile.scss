@@ -55,5 +55,8 @@ page-profile {
       margin: auto;
     }
   }
-  
+  .shadow-transition {
+    transition: box-shadow .5s ease-in-out;
+    height: 66px;
+  }
 }

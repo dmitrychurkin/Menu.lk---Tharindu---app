@@ -1,0 +1,33 @@
+
+page-menu {
+
+  .spinner-grid, .no-content-notice {
+    @include create-flex-grid(flex-start)
+  }
+  
+  position: relative;
+  .list-header {
+    h2 {
+      font-size: 2.4rem;
+      font-weight: bold
+    }
+    
+  }
+  @include sub-page-layout {
+    .list-wrapper {
+      overflow: scroll;
+      
+      img-loader {
+        .mock-image-container {
+          font-size: 7rem;
+          top: -1%;
+          left: -23%; 
+          .mock {
+            font-size: 7rem;
+          }
+        } 
+      }
+    }
+  }
+
+}

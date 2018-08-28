@@ -1,117 +1,133 @@
-
-import { Component, ChangeDetectionStrategy, ViewEncapsulation, Input, AfterViewInit, ViewChild, ElementRef, Renderer2 } from "@angular/core";
-import { ImageLoader } from "../../providers";
-import { Ion, Content } from "ionic-angular";
-
-const RENDER_BUFFER_DEFAULT = 400;
+import { AfterViewInit, Component, ElementRef, Input, ViewEncapsulation, ChangeDetectionStrategy, OnInit, ChangeDetectorRef } from "@angular/core";
+import { asap } from "rxjs/Scheduler/asap";
 
 @Component({
   selector: 'img-loader',
-  template: `<div class="image-container" [class.font-hidden]="isIconHidden">
+  template: `<div class="image-container" [class.ready]="isCanRender" [class.font-hidden]="isIconHidden" [ngStyle]="{ height: height ? height + 'px' : '', width: width ? width + 'px' : '' }">
               <div class="mock-image-container">
                 <div class="mock">
                    <ion-icon name="images"></ion-icon> 
                 </div>
               </div>
-              <img [src]="imgSrc || ''" #img>
+              <img class="image" [style.height.px]="height" (load)="onImageLoaded()" [src]="imgSrc">
             </div>`,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ImageLoaderComponent implements AfterViewInit {
-  @ViewChild('img') img: ElementRef;
+export class ImageLoaderComponent implements OnInit, AfterViewInit {
 
   @Input('icon-hidden') isIconHidden?: boolean;
-  @Input() target: HTMLElement | Ion;
-  @Input() renderedBuffer = RENDER_BUFFER_DEFAULT;
-  @Input() height?: number;
+  @Input() threshold?: number = 0;
   @Input() width?: number;
-  @Input('src') imgSrc?: string;
-  @Input() id?: string;
+  @Input() height?: number;
+  @Input('options') ioOptions?: IntersectionObserverInit = {
+    root: null,
+    rootMargin: '0%',
+    threshold: this.threshold
+  };
 
-  constructor(
-    private _imageLoader: ImageLoader,
-    private _renderer2: Renderer2,
-    private _elRef: ElementRef
-  ) {}
+  get imgSrc() {
+    return this._isCanSetSrc ? this._cachedSrc : '';
+  }
+
+  @Input('src') 
+  set imgSrc(src: string) {
+
+    this._cachedSrc = src;
+
+  }
+
+  isCanRender: boolean;
+  private _isImageLoaded: boolean;
+  private _isCanSetSrc: boolean;
+  private _cachedSrc: string;
+  private _isImageVisible: boolean;
+  private _io: IntersectionObserver;
+
+  constructor(private _imgContainer: ElementRef, private _cdRef: ChangeDetectorRef) {}
+  
+  ngOnInit() {
+
+    this._cdRef.detach();
+
+  }
 
   ngAfterViewInit() {
+
+    this._setUpIO();
+    this._cdRef.detectChanges();
+
+  }
+
+  onImageLoaded() {  
     
-    const imgElement = this.img.nativeElement;
-    const imageContainer = this._renderer2.parentNode(imgElement);
-    const { target, _elRef: rootContainer, renderedBuffer, id } = this;
-    
-    this._setInitHeight(imageContainer, this.height);
-    const IMAGE = new Img({
-      imgElement, 
-      imageContainer, 
-      viewTarget: target instanceof HTMLElement ? target : target.getNativeElement(),
-      renderedBuffer,
-      rootContainer,
-      imageContainerHeight: this.height,
-      imageContainerWidth: this.width,
-      id
-    });
-    
-    const newImg = this._imageLoader.checkDuplicateImage(IMAGE);
-    console.log("IMAGES => ", this._imageLoader._images);
-    if (newImg instanceof Img) {
-      if (newImg.hasViewed) {
-        this._imageLoader.render(IMAGE);
+    asap.schedule(() => {
+
+      this._isImageLoaded = true;
+      if (this._isImageVisible) {
+        
+        this._allowImageRender();
+
       }
-    }else {
-      this._imageLoader._images.push(IMAGE);
+
+    }, 50);
+
+  }
+
+  private _allowImageRender() {
+    
+    this.isCanRender = true;
+    this._removeIO();
+    this._cdRef.detectChanges();
+
+  }
+
+  private _setUpIO() {
+
+    if (!this._cachedSrc) {
+      return;
     }
-    this._imageLoader.updateImgs();
-  }
-  private _setInitHeight(imageContainer, height) {
-    if (height) {
-      this._renderer2.setStyle(this._elRef.nativeElement, 'height', `${height}px`);
-      this._renderer2.setStyle(imageContainer, 'height', `${height}px`);
+
+    if (typeof IntersectionObserver === 'function') {
+
+      this._removeIO();
+      this._io = new IntersectionObserver((entries: IntersectionObserverEntry[]) => 
+      entries.forEach(({ isIntersecting }: IntersectionObserverEntry) => {
+        
+        this._isImageVisible = isIntersecting;
+
+        if (isIntersecting) {
+
+          if (!this._isCanSetSrc) {
+
+            this._isCanSetSrc = true; 
+            this._cdRef.detectChanges();
+  
+          }
+
+          if (this._isImageLoaded) {
+          
+            this._allowImageRender();
+
+          }
+
+        }
+
+      }), this.ioOptions);
+
+      this._io.observe(this._imgContainer.nativeElement);
+
     }
+
   }
-}
 
-export class Img {
+  private _removeIO() {
 
-  isCanRender = false;
-  hasViewed = false;
-  imgElement: HTMLImageElement;
-  imageContainer: HTMLElement;
-  rootContainer: ElementRef;
-  viewTarget: HTMLElement;
-  renderBuffer: number;
-  imageContainerHeight: number;
-  imageContainerWidth: number;
-  id = '';
+    if (this._io) {
+      this._io.disconnect();
+      this._io = undefined;
+    }
 
-  constructor({ 
-    imgElement, 
-    imageContainer, 
-    viewTarget, 
-    renderedBuffer,  
-    rootContainer,
-    imageContainerHeight,
-    imageContainerWidth,
-    id }: IImgSettings) {
-
-    this.imgElement = imgElement;
-    this.imageContainer = imageContainer;
-    this.viewTarget = viewTarget;
-    this.renderBuffer = renderedBuffer;
-    this.rootContainer = rootContainer;
-    this.imageContainerHeight = imageContainerHeight;
-    this.imageContainerWidth = imageContainerWidth;
-    this.id = id;
   }
-}
-interface IImgSettings {
-  id: string;
-  imgElement: HTMLImageElement;
-  imageContainer: HTMLElement;
-  rootContainer: ElementRef;
-  viewTarget: HTMLElement;
-  imageContainerHeight?: number;
-  imageContainerWidth?: number;
-  renderedBuffer?: number;
+
 }

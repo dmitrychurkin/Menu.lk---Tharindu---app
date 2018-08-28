@@ -1,43 +1,4 @@
 page-home {
-  // @include image-loader($font-size: 14rem, $height: 172px);
-  //.image-container {
-    //height: 172px;
-    // position: relative;
-    // color: rgba(170, 173, 193, .35);
-    // transition: .4s;
-    /*.mock-image-container {
-      width: 100%;
-      position: absolute;
-      top: 7%;
-      .mock {
-        width: 45%;
-        margin: auto;
-        font-size: 14rem;
-      }
-    }*/
-    /*.image {
-      transition: 1s;
-      opacity: 0;
-    }*/
-  //}
-  /*.image-container.ready {
-    color: rgba(0, 0, 0, 0);
-    .image {
-      opacity: 1;
-    }
-  }*/
-  // @include ion-img;
-  /*ion-header {
-    app-cart-widget {
-      margin-left: 7%;
-      @media all and (orientation: landscape) {
-        margin-left: 25%;
-      }
-    }
-  }*/
-  ion-navbar {
-    position: relative;
-  }
   ion-card-content {
     text-transform: capitalize;
     .title {

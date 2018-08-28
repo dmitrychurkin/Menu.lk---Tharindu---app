@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { IonicPageModule } from 'ionic-angular';
-import { LoginWidgetModule } from '../../components/login-widget/login-widget.module';
+import { LoginWidgetModule } from '../../components';
 import { AppTabsPage } from './app-tabs';
 
 @NgModule({

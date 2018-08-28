@@ -1,8 +1,6 @@
-<app-login-widget (signInTypeSelected)="signInHandler($event)" *ngIf="animationSteps == 1 || animationSteps == 2 || animationSteps == 4">
+<app-login-widget (signInTypeSelected)="signInHandler($event)" *ngIf="animationSteps == 1 || animationSteps == 2 || animationSteps == 4"></app-login-widget>
 
-</app-login-widget>
-
-<div #SpinnerContainer class="spinner-container" *ngIf="animationSteps == 0 || animationSteps == 1 || animationSteps == 3 || animationSteps == 4 || animationSteps == 5">
+<div #SpinnerContainer class="spinner-container" *ngIf="animationSteps == 0 || animationSteps == 1 || animationSteps == 3 || animationSteps == 4 || animationSteps == 5 || animationSteps == 8">
     <ion-spinner class="spinner" name="dots"></ion-spinner>
 </div>
 
@@ -13,7 +11,7 @@
     <ion-tab [root]="profileRoot" tabTitle="Profile" tabIcon="person"></ion-tab>
 </ion-tabs>
 
-<ion-content *ngIf="animationSteps == 8">
+<ion-content (@prepareToRemove.done)="prepareToRemoveDone($event)" [@prepareToRemove]="animationSteps" class="new-user-widget" #NewUserWidget *ngIf="animationSteps == 8 || animationSteps == 9 || animationSteps == 10">
     <div class="centered-grid columnaize">
         <img src="assets/imgs/ica-slidebox-img-4.png" class="slide-image" margin-horizontal />
         <h2 class="slide-title" text-center padding-horizontal>Congratulations, Ready to Go?</h2>

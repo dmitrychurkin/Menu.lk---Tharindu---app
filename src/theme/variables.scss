@@ -1,16 +1,6 @@
 // Ionic Variables and Theming. For more info, please see:
-// http://ionicframework.com/docs/theming/
-
-// Font path is used to include ionicons,
-// roboto, and noto sans fonts
+// http://ionicframework.com/docs/v2/theming/
 $font-path: "../assets/fonts";
-
-
-// The app direction is used to include
-// rtl styles in your app. For more info, please see:
-// http://ionicframework.com/docs/theming/rtl-support/
-$app-direction: ltr;
-
 
 @import "ionic.globals";
 
@@ -20,10 +10,11 @@ $app-direction: ltr;
 // To customize the look and feel of this app, you can override
 // the Sass variables found in Ionic's source scss files.
 // To view all the possible Ionic variables, see:
-// http://ionicframework.com/docs/theming/overriding-ionic-variables/
+// http://ionicframework.com/docs/v2/theming/overriding-ionic-variables/
 
 
-
+$item-md-detail-push-show: true;
+$item-wp-detail-push-show: true;
 
 // Named Color Variables
 // --------------------------------------------------
@@ -76,7 +67,7 @@ $colors: (
 // Ionicons
 // --------------------------------------------------
 // The premium icon font for Ionic. For more info, please see:
-// http://ionicframework.com/docs/ionicons/
+// http://ionicframework.com/docs/v2/ionicons/
 
 @import "ionic.ionicons";
 
@@ -87,7 +78,9 @@ $colors: (
 @import "roboto";
 @import "noto-sans";
 
-$toolbar-md-background: map-get($colors, primary);
+$text-color:        #000;
+$background-color:  #fff;
+$toolbar-md-background: color($colors, primary);
 $segment-button-md-text-color-activated: #fff;
 $segment-button-md-border-color-activated: #fff;
 
@@ -140,9 +133,9 @@ $segment-button-md-border-color-activated: #fff;
       opacity: 0;
     }
 
-    &.error {
+    /*&.error {
       color: $font-visible;
-    }
+    }*/
     
     &.ready {
       color: $font-transparent;
@@ -182,20 +175,50 @@ $segment-button-md-border-color-activated: #fff;
   }
 }
 
-@mixin ion-img {
-  ion-img {
-    width: 100%;
-    height: 17rem;
+// @mixin ion-img {
+//   ion-img {
+//     width: 100%;
+//     height: 17rem;
     
-    &.img-unloaded img, &.img-loaded img {
-      display: block;
-      transition: .5s;
+//     &.img-unloaded img, &.img-loaded img {
+//       display: block;
+//       transition: .5s;
+//     }
+//     &.img-unloaded img {
+//       opacity: 0;
+//     }
+//     &.img-loaded img {
+//       opacity: 1;
+//     }
+//   }
+// }
+
+@mixin create-flex-grid($align-items: center, $justify-content: center) {
+  display: flex;
+  align-items: $align-items;
+  justify-content: $justify-content;
+  height: 100%;
+}
+
+@mixin text-overflow {
+  white-space: nowrap; 
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/*@mixin alert-helper($alert-message: true, $error-message: true) {
+  
+  ion-alert.error {
+    @if $alert-message {
+      .alert-message {
+        color: color($colors, danger);
+      }
     }
-    &.img-unloaded img {
-      opacity: 0;
-    }
-    &.img-loaded img {
-      opacity: 1;
+
+    @if $error-message {
+      .error-message {
+        color: color($colors, danger);
+      }
     }
   }
-}
+}*/

@@ -1,32 +1,30 @@
-import { AnimationBuilder, animate, state, style, transition, trigger } from '@angular/animations';
-import { AfterViewChecked, Component, ElementRef, ViewChild } from '@angular/core';
-import { Events, IonicPage, Tabs, ToastController } from 'ionic-angular';
-import { asap } from 'rxjs/Scheduler/asap';
+import { animate, AnimationBuilder, state, style, transition, trigger } from '@angular/animations';
+import { AfterViewChecked, Component, ElementRef, Inject, ViewChild } from '@angular/core';
+import { CollectionReference, DocumentChangeAction } from 'angularfire2/firestore';
+import { Events, IonicPage, Tabs } from 'ionic-angular';
+import { distinctUntilChanged, pluck } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
-import { ISignInMeta, LoginWidgetComponent } from '../../components/login-widget/login-widget.component';
-import { AuthProvider, IPWDSignInFlowHandlers, Providers } from '../../providers';
-import { APP_EV, APP_HOME_PAGE, APP_PROFILE_PAGE, APP_SEARCH_PAGE } from '../pages.constants';
+import { User } from 'firebase';
+import { DataStoreForCurrentOrders } from '../../app/app.module';
+import { ISignInMeta, LoginWidgetComponent } from '../../components';
+import { IQuickOrder } from '../../interfaces';
+import { AuthService, IPWDSignInFlowHandlers, OrdersNotificatorService, Providers, RootDataReceiverService, ToastMessangerService } from '../../services';
+import { StateDataStoreEntity } from '../data-state-store.class';
+import { APP_EV, APP_HOME_PAGE, APP_PROFILE_PAGE, APP_SEARCH_PAGE, OrderStatus } from '../pages.constants';
 import AppTabsAnimations from './app-tabs.animation';
-import { User } from '@firebase/auth-types';
 
-/**
- * Generated class for the AppTabsPage tabs.
- *
- * See https://ionicframework.com/docs/components/#navigation for more info on
- * Ionic pages and navigation.
- */
-// enum UserState { UNKNOWN = 0, NOT_SIGNED = -1, REQUEST_SENT = 1, SIGNED = 2 };
-
-export enum AnimationLifecicleSteps { 
-  SHOW_PRELOADER, 
-  ENTER_LOGIN_TRANSITION, 
-  LOGIN_ENTERED,
-  REMOVE_PRELOADER_IF_SIGNED,
-  SIGN_IN_REQUEST_SENT_TRANSITION, 
-  SIGN_IN_REQUEST_SENT,
-  PRELOADER_REMOVED,
-  SIGN_OUT,
-  NEW_USER
+export enum AnimationLifecicleSteps {
+  SHOW_PRELOADER = 0,
+  ENTER_LOGIN_TRANSITION = 1,
+  LOGIN_ENTERED = 2,
+  REMOVE_PRELOADER_IF_SIGNED = 3,
+  SIGN_IN_REQUEST_SENT_TRANSITION = 4,
+  SIGN_IN_REQUEST_SENT = 5,
+  PRELOADER_REMOVED = 6,
+  SIGN_OUT = 7,
+  NEW_USER_TRANSITION = 8,
+  NEW_USER = 9,
+  NEW_USER_REMOVE = 10
 };
 
 @IonicPage()
@@ -36,35 +34,9 @@ export enum AnimationLifecicleSteps {
   animations: [
     trigger('prepareToRemove', [
       state('7', style({ opacity: 0 })),
-      transition('6 => 7', animate('.5s ease-out'))
+      state('10', style({ transform: 'translateX(100%)' })),
+      transition('6 => 7, 9 => 10', animate('.5s ease-out'))
     ])
-    /*trigger('animateLogin', [
-      //state('void', style({ transform: 'translateX(100%)' })),
-      //state('0', style({ transform: 'translateX(0)', position: 'absolute', top: 0, left: '50%', zIndex: -1 })),
-// Init State
-      transition('void => -1', [
-        style({ transform: 'translateX(100%)' }), 
-        // animate('1s cubic-bezier(0.4, 0, 0.2, 1)', style({ transform: 'translateX(0)' }))
-        animationBuilder({ transform: 'translateX(0)' })
-      ]),
-      transition('0 => void, 1 => void', [
-        style({ transform: 'translateX(0)', position: 'absolute', top: 0, left: '50%', zIndex: -1 }),
-        // animate('1s cubic-bezier(0.4, 0, 0.2, 1)', style({ transform: 'translateX(-500%)', opacity: 0 }))
-        animationBuilder({ transform: 'translateX(-500%)', opacity: 0 })
-      ]),
-// Request Sent
-      transition('-1 => void', [
-        style({ transform: 'translateX(0)' }),
-        // animate('1s cubic-bezier(0.4, 0, 0.2, 1)', style({ transform: 'translateX(100%)' }))
-        animationBuilder({ transform: 'translateX(100%)' })
-      ]),
-
-      transition('void => 1', [
-        style({ transform: 'translateX(-500%)', opacity: 0, position: 'absolute', top: 0, left: '50%', zIndex: -1 }),
-        // animate('1s cubic-bezier(0.4, 0, 0.2, 1)', style({ transform: 'translateX(0)', opacity: 1 }))
-        animationBuilder({ transform: 'translateX(0)', opacity: 1 })
-      ])
-    ])*/
   ]
 })
 export class AppTabsPage implements AfterViewChecked {
@@ -72,7 +44,8 @@ export class AppTabsPage implements AfterViewChecked {
   @ViewChild(LoginWidgetComponent, { read: ElementRef }) loginWidget: ElementRef;
   @ViewChild('SpinnerContainer') spinner: ElementRef;
   @ViewChild(Tabs) tabs: Tabs;
-  
+  @ViewChild('NewUserWidget', { read: ElementRef }) newUserWidget: ElementRef;
+
   homeRoot = APP_HOME_PAGE;
   searchRoot = APP_SEARCH_PAGE;
   profileRoot = APP_PROFILE_PAGE;
@@ -82,14 +55,15 @@ export class AppTabsPage implements AfterViewChecked {
 
   componentAnimations: AppTabsAnimations;
   private _sub: Subscription;
-  private _subUser: Subscription;
   private _flag: number;
 
-  constructor(public authProvider: AuthProvider,
-              // public renderer2: Renderer2, 
-              public toastCtrl: ToastController,
-              public events: Events,
-              animationBuilder: AnimationBuilder) {
+  constructor(readonly authProvider: AuthService,
+    readonly toastMessanger: ToastMessangerService,
+    readonly events: Events,
+    @Inject(DataStoreForCurrentOrders) private readonly _dataStorageCurrentOrders: StateDataStoreEntity<IQuickOrder>,
+    private readonly _rootDataReceiverService: RootDataReceiverService<IQuickOrder>,
+    private readonly _ordersNotificatorService: OrdersNotificatorService,
+    animationBuilder: AnimationBuilder) {
     this.componentAnimations = new AppTabsAnimations(animationBuilder);
   }
 
@@ -98,7 +72,7 @@ export class AppTabsPage implements AfterViewChecked {
       return;
     }
     switch (this.animationSteps) {
-    
+
       case AnimationLifecicleSteps.ENTER_LOGIN_TRANSITION: {
         if (this.spinner && this.loginWidget) {
           this.isAnimating = true;
@@ -110,7 +84,7 @@ export class AppTabsPage implements AfterViewChecked {
         }
         break;
       }
-      
+
       case AnimationLifecicleSteps.SIGN_IN_REQUEST_SENT_TRANSITION: {
         if (this.loginWidget && this.spinner) {
           this.isAnimating = true;
@@ -119,13 +93,8 @@ export class AppTabsPage implements AfterViewChecked {
             let PWD_handlers: IPWDSignInFlowHandlers;
             if (this._flag == Providers.PWD) {
               PWD_handlers = {
-                onCancel: (data: any) => {
-                  console.log('Cancel handler => ', data);
-                  this.animationSteps = AnimationLifecicleSteps.ENTER_LOGIN_TRANSITION;
-                },
-                onSuccess: (data: any) => {
-                  console.log('Next handler => ', data);
-                }
+                onCancel: _ => this.animationSteps = AnimationLifecicleSteps.ENTER_LOGIN_TRANSITION,
+                onSuccess: _ => {}
               };
             }
             this.authProvider.signIn(this._flag, PWD_handlers);
@@ -140,38 +109,41 @@ export class AppTabsPage implements AfterViewChecked {
         if (this.spinner) {
           this.isAnimating = true;
           this.componentAnimations.removePreloaderIfSign(this.spinner.nativeElement, () => {
-            this.animationSteps = this.authProvider.isNewUser ? AnimationLifecicleSteps.NEW_USER : AnimationLifecicleSteps.PRELOADER_REMOVED;
+            this.animationSteps = AnimationLifecicleSteps.PRELOADER_REMOVED;
             this.isAnimating = false;
           });
         }
         break;
       }
 
-      /*case AnimationLifecicleSteps.SIGN_OUT: {
-        if (this.tabs) {
+      case AnimationLifecicleSteps.NEW_USER_TRANSITION: {
+
+        if (this.spinner && this.newUserWidget) {
           this.isAnimating = true;
-          asap.schedule(() => {
-            console.log(this.tabs);
-            this.animationSteps = AnimationLifecicleSteps.SHOW_PRELOADER;
-            this.authProvider
-                  .afAuth
-                  .auth
-                  .signOut()
-                  .then(() => this.isAnimating = false);
-          }, 600);
+          this.componentAnimations.removePreloader(this.spinner.nativeElement);
+          this.componentAnimations.showNewUserWidget(this.newUserWidget.nativeElement, () => {
+            this.animationSteps = AnimationLifecicleSteps.NEW_USER;
+            this.isAnimating = false;
+          })
         }
         break;
-      }*/
+      }
+
     }
   }
   prepareToRemoveDone({ toState }: any) {
-    if (toState == AnimationLifecicleSteps.SIGN_OUT) {
-      this.events.publish(APP_EV.TABS_SIGN_IN_ANIMATION_DONE, true);
+
+    switch (toState) {
+      case AnimationLifecicleSteps.SIGN_OUT:
+        return this.events.publish(APP_EV.TABS_SIGN_IN_ANIMATION_DONE, true);
+
+      case AnimationLifecicleSteps.NEW_USER_REMOVE:
+        return this.animationSteps = AnimationLifecicleSteps.PRELOADER_REMOVED;
     }
+    
   }
   startApp() {
-    delete this.authProvider.isNewUser;
-    this.animationSteps = AnimationLifecicleSteps.PRELOADER_REMOVED;
+    this.animationSteps = AnimationLifecicleSteps.NEW_USER_REMOVE;
   }
 
   signInHandler({ flag }: ISignInMeta) {
@@ -180,46 +152,45 @@ export class AppTabsPage implements AfterViewChecked {
   }
 
   ionViewDidLoad() {
-    console.log('TABS PAGE ionViewDidLoad!');
-    // this.authProvider.configure(this.renderer2);
-    this._sub = this.authProvider.user$.subscribe((user: User) => {
-      console.log("AppTabsPage user => ", user);
 
-      this._subUser = this.authProvider.setPwdAuthUserData(user);
-        
-      asap.schedule(() => {
-        // if (user && this.authProvider.isNewUser) {
-        //   this.animationSteps = AnimationLifecicleSteps.NEW_USER;
-        //   return;
-        // }
-        this.animationSteps = user ? AnimationLifecicleSteps.REMOVE_PRELOADER_IF_SIGNED : AnimationLifecicleSteps.ENTER_LOGIN_TRANSITION;
-      }, this.animationSteps == AnimationLifecicleSteps.SHOW_PRELOADER ? 2000 : 0);
-    }, () => {
-      this.toastCtrl.create({ message: 'Error occured, try again', duration: 3000, showCloseButton: true }).present();
-      this.animationSteps = AnimationLifecicleSteps.ENTER_LOGIN_TRANSITION;
-    });
+    this._sub = this.authProvider
+      .user$
+      .pipe(
+        pluck('userData'),
+        distinctUntilChanged((p: User, q: User) => p && q ? p.uid === q.uid : p === q)
+      )
+      .subscribe({
+        next: (user: User) => {
+
+          if (user) {
+
+            const { uid, isAnonymous } = user;
+            this._rootDataReceiverService.emitFetch({
+              collection: 'orders',
+              mode: 'list',
+              resourceObject: this._dataStorageCurrentOrders,
+              queryFn: (ref: CollectionReference) => ref.where('uid', '==', uid).where('orderStatus', '<', OrderStatus.DONE),
+              onQueryComplete: (data: DocumentChangeAction<IQuickOrder>[], resourceObject: StateDataStoreEntity<IQuickOrder>, isInit: boolean) => this._ordersNotificatorService.onOrderData(data, resourceObject, isInit)
+            });
+
+            this.animationSteps = isAnonymous || this.authProvider.isNewUser ? AnimationLifecicleSteps.NEW_USER_TRANSITION : AnimationLifecicleSteps.REMOVE_PRELOADER_IF_SIGNED;
+
+            return;
+
+          }
+
+          this.animationSteps = AnimationLifecicleSteps.ENTER_LOGIN_TRANSITION;
+
+        },
+        error: _ => {
+          this.toastMessanger.showToast({ message: 'Error occured, try again', showCloseButton: true });
+          this.animationSteps = AnimationLifecicleSteps.ENTER_LOGIN_TRANSITION;
+        }
+      });
   }
-
-//debug only
-  /*ionViewDidEnter() {
-    setTimeout(() => {
-      console.log('Going to hide app-tabs!');
-      this.isUserSigned = false;
-      setTimeout(() => {
-        console.log('Going to show app-tabs!');
-        this.isUserSigned = true;
-      },3000);
-    }, 8000);
-  }*/
-//
-  // ionViewWillLeave() {
-  //   console.log('TABS PAGE ViewWillLeave!');
-   
-  // }
 
   ionViewWillUnload() {
     this._sub.unsubscribe();
-    this._subUser.unsubscribe();
   }
 
 }
