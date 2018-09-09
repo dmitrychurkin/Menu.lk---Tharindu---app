@@ -17,7 +17,7 @@ export class AppLevelErrorHandler extends ErrorHandler {
   handleError(error?: Error) {
     
     if (!this._platform.is('cordova')) {
-
+      console.log(error);
       const message = (error && error.message) || 'Error occured';
       this._toastMessService.showToast({ message });
 

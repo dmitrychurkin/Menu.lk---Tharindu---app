@@ -5,7 +5,7 @@ import { ToastController, ToastOptions } from "ionic-angular";
 @Injectable()
 export class ToastMessangerService {
 
-  private _notificationPool = [];
+  private readonly _notificationPool = [];
 
   private get _defaultCfg(): ToastOptions {
     return {
@@ -18,8 +18,8 @@ export class ToastMessangerService {
   showToast(config?: ToastOptions) {
 
     const offset = this._notificationPool.indexOf(config.message);
-    
-    if (!config.message || (this._notificationPool.length && offset >= 0)) return;
+
+    if (!config.message || (this._notificationPool.length && offset >= 0)) return Promise.resolve();
   
     this._notificationPool.push(config.message);
 

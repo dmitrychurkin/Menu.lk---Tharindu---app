@@ -100,13 +100,14 @@ export class ShoppingCartService {
 
   addToCart(Order: IOrder): Promise<any> {
 
-    try {
-
+    //try {
+      
       const { TOTAL_ORDERS_IN_CART, CART } = this.CART_OBJECT_DB;
 
       if (TOTAL_ORDERS_IN_CART + Order.menu.quantity > MAX_CART_ITEMS) {
 
-        throw new Error( this._messService.getMessage(`tooManyOrders_${ShoppingCartService.name}`) );
+        //throw new Error( this._messService.getMessage(`tooManyOrders_${ShoppingCartService.name}`) );
+        return this.toastMessageHandler( this._messService.getMessage(`tooManyOrders_${ShoppingCartService.name}`) );
 
       }
 
@@ -191,11 +192,11 @@ export class ShoppingCartService {
         totalCost: Order.menu.item.price * Order.menu.quantity
       });
 
-    } catch (err) {
+    //} catch (err) {
       // Handling all errors here :)
-      return this.toastMessageHandler( this._messService.getMessage(`${CART_ACTION_FLAGS.ADD}Error_${ShoppingCartService.name}`) /*`${(err && err.message) || 'Error occured while trying to add to cart'}`*/);
+      // return this.toastMessageHandler(`${ (err && err.message) || this._messService.getMessage(`${CART_ACTION_FLAGS.ADD}Error_${ShoppingCartService.name}`) }` /*`${(err && err.message) || 'Error occured while trying to add to cart'}`*/);
 
-    }
+    //}
 
   }
 
@@ -251,7 +252,7 @@ export class ShoppingCartService {
 
     }catch(e) {
 
-      return this.toastMessageHandler( this._messService.getMessage(`${CART_ACTION_FLAGS.DELETE}Error_${ShoppingCartService.name}`) /*`${(e && e.message) || 'Error occured while trying to remove from cart'}`*/);
+      return this.toastMessageHandler(`${ (e && e.message) || this._messService.getMessage(`${CART_ACTION_FLAGS.DELETE}Error_${ShoppingCartService.name}`) }` /*`${(e && e.message) || 'Error occured while trying to remove from cart'}`*/);
 
     }
 
@@ -301,7 +302,7 @@ export class ShoppingCartService {
 
     } catch (err) {
 
-      return this.toastMessageHandler(this._messService.getMessage('appError')/*`${(err && err.message) || 'Error occured'}`*/);
+      return this.toastMessageHandler(`${ (err && err.message) || this._messService.getMessage('appError') }`/*`${(err && err.message) || 'Error occured'}`*/);
 
     }
 

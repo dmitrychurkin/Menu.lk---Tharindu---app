@@ -53,7 +53,10 @@ export class OrdersManagerService {
         //if (err || ACTION_FLAG == OrderManagmentActionFlag.DELETE) {
        
         return this._toastMessService.showToast({ 
-          message: this._messService.getMessage(err ? 'appError' : `${ACTION_FLAG}_${OrdersManagerService.name}`, id), showCloseButton: true, closeButtonText: 'OK' }) ;
+          message: this._messService.getMessage(err ? 'appError' : `${ACTION_FLAG}_${OrdersManagerService.name}`, id), 
+          showCloseButton: true, 
+          closeButtonText: 'OK' 
+        });
         
         //}
         

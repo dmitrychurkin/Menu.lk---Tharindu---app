@@ -12,6 +12,8 @@ class ItemPageCache {
   unitEntity: any;
   isClosed: boolean;
 
+  MAX_LIMIT = MAX_CART_ITEMS;
+
 }
 
 @IonicPage()
@@ -32,7 +34,7 @@ export class ShopItemPage extends ItemPageCache {
   private _isUnitSaved: boolean;
 
   constructor(
-    private readonly _shoppingCartService: ShoppingCartService,
+    readonly shoppingCartService: ShoppingCartService,
     private readonly _navCtrl: NavController,
     private readonly _toastService: ToastMessangerService,
     private readonly _messService: MessangingService,
@@ -62,7 +64,8 @@ export class ShopItemPage extends ItemPageCache {
 
     if (!this.requestFromCartPage) {
 
-      this._shoppingCartService.addToCart(this.Order as IOrder);
+      this.shoppingCartService.addToCart(this.Order as IOrder)
+                                .then(_ => delete this._isActionBtnClicked);
 
     } else {
 
@@ -76,11 +79,11 @@ export class ShopItemPage extends ItemPageCache {
 
   onInc() {
 
-    const { CART_OBJECT_DB } = this._shoppingCartService;
+    const { CART_OBJECT_DB } = this.shoppingCartService;
 
-    if (CART_OBJECT_DB.TOTAL_ORDERS_IN_CART + 1 > MAX_CART_ITEMS) {
+    if ((this.requestFromCartPage ? CART_OBJECT_DB.TOTAL_ORDERS_IN_CART : CART_OBJECT_DB.TOTAL_ORDERS_IN_CART + this.unitEntity.quantity) + 1 > MAX_CART_ITEMS) {
 
-      return this._toastService.showToast({ message: this._messService.getMessage(`toManyOrders_${ShoppingCartService.name}`) });
+      return this._toastService.showToast({ message: this._messService.getMessage(`tooManyOrders_${ShoppingCartService.name}`) });
 
     }
 
@@ -100,7 +103,7 @@ export class ShopItemPage extends ItemPageCache {
 
   onDec() {
 
-    const { CART_OBJECT_DB } = this._shoppingCartService;
+    const { CART_OBJECT_DB } = this.shoppingCartService;
     const { quantity, price } = this.unitEntity;
 
     if (quantity > 1) {
@@ -123,7 +126,7 @@ export class ShopItemPage extends ItemPageCache {
 
     if (!this._isUnitSaved && this.requestFromCartPage) {
 
-      const { CART_OBJECT_DB } = this._shoppingCartService;
+      const { CART_OBJECT_DB } = this.shoppingCartService;
       const fn = (itemCount: number, unitPrice = 1, unitCount = this.unitCount) => {
 
         const mult = Math.abs(unitCount) * unitPrice;
