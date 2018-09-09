@@ -4,7 +4,7 @@ import { AngularFirestore } from "angularfire2/firestore";
 import { IonicPage, NavController, TextInput } from "ionic-angular";
 import { asap } from "rxjs/Scheduler/asap";
 import { IQuickOrder, FormUserTemplateData } from "../../interfaces";
-import { AuthService, ShoppingCartService, ToastMessangerService } from "../../services";
+import { AuthService, ShoppingCartService, ToastMessangerService, NetworkService } from "../../services";
 import { ANGULAR_ANIMATION_OPACITY, CART_ACTION_FLAGS, OrderStatus, FORM_USER_TEMPLATE_DATA_TOKEN, FIREBASE_DB_TOKENS, SOUND_MAPPER } from "../pages.constants";
 
 const { ORDERS, ORDER_CONTENT } = FIREBASE_DB_TOKENS;
@@ -26,6 +26,7 @@ export class QuickOrder {
     private readonly _af: AngularFirestore,
     private readonly _authService: AuthService,
     private readonly _navCtrl: NavController,
+    private readonly _networkService: NetworkService,
     private readonly _toastMessService: ToastMessangerService,
     private readonly _shoppingCartService: ShoppingCartService) {}
 
@@ -63,7 +64,7 @@ export class QuickOrder {
 
   onQuickOrder({ invalid, value }: NgForm) {
 
-    if (invalid || this.isQuickOrderSent) return;
+    if (invalid || this.isQuickOrderSent || !this._networkService.checkNetwork()) return;
 
     this.isQuickOrderSent = true;
 

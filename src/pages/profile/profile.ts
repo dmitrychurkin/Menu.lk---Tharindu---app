@@ -246,20 +246,20 @@ export class ProfilePage {
               let reader = new FileReader();
               const { files } = event.target;
               reader.onload = (readerEvent: any) => {
-              
+                  console.log('reader.onload ', readerEvent, files);
                   delete this._fileFieldErrorMessage;
                   this._alertUIValidatorService.clearPreviousErrors();
 
                   this._fileFieldErrorMessage = '';
-
-                  if (SIZE < files[0].size) {
+                  const { size, type } = files[0];
+                  if (SIZE < size) {
                     
-                    this._fileFieldErrorMessage = 'File size too big!';
+                    this._fileFieldErrorMessage = `File size must be less than ${SIZE / 1000} Kb. Current size is ${(size / 1000).toFixed(0)} Kb`;
 
                   }
                   
 
-                  if (MIME_TYPE_ARR.indexOf(files[0].type) == -1) { 
+                  if (MIME_TYPE_ARR.indexOf(type) == -1) { 
                     
                     this._fileFieldErrorMessage += '<br>Incorrect file type, must to be JPG or PNG!';
 

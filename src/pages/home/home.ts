@@ -6,7 +6,7 @@ import { PageBaseClass } from '../page-base.class';
 import { FIREBASE_DB_TOKENS } from '../pages.constants';
 
 
-const { RESTAURANTS, CATERING  } = FIREBASE_DB_TOKENS;
+const { RESTAURANTS, CATERING } = FIREBASE_DB_TOKENS;
 
 @IonicPage()
 @Component({
@@ -17,7 +17,7 @@ export class HomePage extends PageBaseClass<SegmentOptions, IRestaurants> {
 
   currentSegmentValue: SegmentOptions = RESTAURANTS;
   catering = CATERING;
-  restaurants = RESTAURANTS;
+  restaurants = this.currentSegmentValue;
 
   sortingFn = (reversedFlag = true) => ({ rating: ratingA }: IRestaurants, { rating: ratingB }: IRestaurants) => reversedFlag ? (ratingA - ratingB) : (ratingB - ratingA);
 

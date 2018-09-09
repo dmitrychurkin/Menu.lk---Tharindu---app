@@ -6,6 +6,7 @@ import { of } from 'rxjs/observable/of';
 import { map, reduce, share, skip, switchMap, take, tap } from 'rxjs/operators';
 import { DataWithId, IStateDataStoreEntity } from '../pages/data-state-store.class';
 import { ToastMessangerService } from './toast-messanger.service';
+import { MessangingService } from './messaging-registry.service';
 
 
 @Injectable()
@@ -13,13 +14,14 @@ export class RootDataReceiverService<T> {
 
   private _isServiceUsed = false;
 
-  private readonly _defaultErrorHandler = (err: Error) => this._toastMessService.showToast({ message: err.message || 'Error ocured' });
+  private readonly _defaultErrorHandler = (/*err: Error*/) => this._toastMessService.showToast({ message: /*err.message ||*/ this._messService.getMessage('appError') });
   private readonly _observer: any = {
     error: this._defaultErrorHandler
   };
 
   constructor(
     private readonly _afDb: AngularFirestore,
+    private readonly _messService: MessangingService,
     private readonly _toastMessService: ToastMessangerService) {}
 
   decodeDataSnapshot(doc: QueryDocumentSnapshot<T>): DataWithId<T> {
@@ -39,7 +41,7 @@ export class RootDataReceiverService<T> {
       resourceObject = fetcherArgs.resourceObject,
       batchSize = resourceObject.batchSize,
       onQueryComplete = resourceObject.defaultAction }: ISubjectArgs<T>) => {
-        
+
       switch (type) {
 
         case 'added':
@@ -99,7 +101,7 @@ export class RootDataReceiverService<T> {
 
     };
 
-    const { resourceObject, mode, collection, queryFn= (ref: CollectionReference) => ref, onQueryComplete= resourceObject.defaultAction } = fetcherArgs;
+    const { resourceObject, mode, batchSize: mainBatchSize= resourceObject.batchSize, collection, queryFn= (ref: CollectionReference) => ref, onQueryComplete= resourceObject.defaultAction } = fetcherArgs;
     
     resourceObject.subscriptionStorage.subject.push(
       resourceObject.subject$
@@ -118,7 +120,7 @@ export class RootDataReceiverService<T> {
                   executorFn$(subjectArgs)
                 );
             }
-
+            
             const result$ = this._afDb.collection<T>(collection, (ref: CollectionReference) => resourceObject.itemCollection.length ? queryFn(ref).startAfter(resourceObject.lastViewedDocumentKey).limit(batchSize) : queryFn(ref).limit(batchSize))
                           .stateChanges(['added', 'modified'])
                           .pipe(
@@ -145,7 +147,7 @@ export class RootDataReceiverService<T> {
                                               resourceObject.itemCollection.push( this.decodeDataSnapshot(doc) );
               
                                             }
-
+                                            
                                             return actions;
 
                                           }),
@@ -229,10 +231,10 @@ export class RootDataReceiverService<T> {
 
             });
              
-            
+
             if (resourceObject.isEntityBeenInialized && actions.length) {
 
-              resourceObject.subject$.next({ type: actions[0].type, actionsData: actions.map(({ payload: { doc } }: DocumentChangeAction<T>) => doc) });
+              resourceObject.subject$.next({ type: actions[0].type, actionsData: actions.length > mainBatchSize ? undefined : actions.map(({ payload: { doc } }: DocumentChangeAction<T>) => doc) });
 
             }
 

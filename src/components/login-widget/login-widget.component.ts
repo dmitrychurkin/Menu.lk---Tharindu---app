@@ -1,4 +1,5 @@
 import { Component, EventEmitter, Output } from "@angular/core";
+import { NetworkService } from "../../services";
 
 @Component({
   selector: 'app-login-widget',
@@ -41,8 +42,11 @@ export class LoginWidgetComponent {
     }
   ];
 
+  constructor(private readonly _networkService: NetworkService) {}
 
   signIn(flag: number) {
+
+    if (!this._networkService.checkNetwork()) return;
 
     this.signInStrategy.emit({ flag });
     

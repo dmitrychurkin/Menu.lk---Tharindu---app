@@ -6,6 +6,7 @@ import { OrderStatus, SOUND_MAPPER } from "../pages/pages.constants";
 import { ToastMessangerService } from "./toast-messanger.service";
 import { AuthService } from "./auth.service";
 import { playSound } from ".";
+import { MessangingService } from "./messaging-registry.service";
 
 const { MODIFIED_BY_ADMIN } = SOUND_MAPPER;
 
@@ -14,6 +15,7 @@ export class OrdersNotificatorService {
 
   constructor(
     private readonly _toastMessanger: ToastMessangerService,
+    private readonly _messService: MessangingService,
     private readonly _authService: AuthService ) { }
 
   onOrderData(data: DocumentChangeAction<IQuickOrder>[], resourceObject: StateDataStoreEntity<IQuickOrder>, isInit: boolean) {
@@ -23,53 +25,76 @@ export class OrdersNotificatorService {
       const { isAnonymous } = this._authService.userInstance;
       const [{ type, payload: { doc } }] = data;
       
-      const fn = ({ orderStatus, cancelledFromState }: IQuickOrder) => {
+      const fn = ({ orderStatus/*, cancelledFromState*/ }: IQuickOrder) => {
         
         let mes: string;
         const { id } = doc;
+        const { name } = OrdersNotificatorService;
 
-        if (orderStatus === OrderStatus.DONE && !isAnonymous) {
+        if (typeof orderStatus !== 'undefined' && !isAnonymous) {
 
-          playSound(MODIFIED_BY_ADMIN);
-          mes = `Order "${id}" has been successfully done`;
+          if (orderStatus === OrderStatus.DONE) {
 
-        } else if (orderStatus === OrderStatus.CANCELLED && !isAnonymous) {
+            //playSound(MODIFIED_BY_ADMIN);
+            //mes = `Order "${id}" has been successfully done`;
+            mes = this._messService.getMessage(`${OrderStatus.DONE}_${name}`, id);
 
-          mes = `Order "${id}" has been cancelled`;
+          } /*else if (orderStatus === OrderStatus.CANCELLED && !isAnonymous) {
 
-        } 
+            mes = `Order "${id}" has been cancelled`;
 
-  
-        if (typeof orderStatus !== 'undefined' && 
-            (orderStatus !== OrderStatus.PLACED || orderStatus === OrderStatus.PLACED && typeof cancelledFromState !== 'undefined')) {
+          } */
+          else if (type === 'modified') {
 
-          if (type === 'modified' && /*orderStatus > OrderStatus.PLACED && orderStatus < OrderStatus.DONE*/ !isAnonymous) {
+            mes = this._messService.getMessage(`${type}_${name}`, id, OrderStatus[orderStatus]);
 
-            playSound(MODIFIED_BY_ADMIN);
-  
           }
 
-          const message = isAnonymous ? mes : (mes || `Order "${id}" has been successfully ${type} ${type === 'modified' ? `to stage ${OrderStatus[orderStatus]}` : ``}`);
+          if (mes) {
 
-          this._toastMessanger.showToast({
-            message,
-            duration: 5000,
-            showCloseButton: true,
-            closeButtonText: 'OK'
-          });
+            playSound(MODIFIED_BY_ADMIN);
+
+            this._toastMessanger.showToast({
+              message: mes,
+              duration: 5000,
+              showCloseButton: true,
+              closeButtonText: 'OK'
+            });
+
+          }
 
         }
+  
+        //if (typeof orderStatus !== 'undefined' && 
+            //(orderStatus !== OrderStatus.PLACED || orderStatus === OrderStatus.PLACED && typeof cancelledFromState !== 'undefined')) {
+
+          //if (type === 'modified' && /*orderStatus > OrderStatus.PLACED && orderStatus < OrderStatus.DONE*/ !isAnonymous) {
+
+            //playSound(MODIFIED_BY_ADMIN);
+  
+          //}
+
+          //const message = isAnonymous ? mes : (mes || `Order "${id}" has been successfully ${type} ${type === 'modified' ? `to stage ${OrderStatus[orderStatus]}` : ``}`);
+
+        //   this._toastMessanger.showToast({
+        //     message,
+        //     duration: 5000,
+        //     showCloseButton: true,
+        //     closeButtonText: 'OK'
+        //   });
+
+        // }
 
       };
 
 
-      if (type === 'modified' && !isAnonymous) {
+      /*if (type === 'modified' && !isAnonymous) {
         
         return fn(doc.data());
 
-      }
+      }*/
 
-      if (resourceObject.identificator === 'current_orders') {
+      if ((type === 'modified' && !isAnonymous) || resourceObject.identificator === 'current_orders') {
 
         if (type === 'removed' && !isAnonymous) {
 

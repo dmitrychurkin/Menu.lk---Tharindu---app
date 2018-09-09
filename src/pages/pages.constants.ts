@@ -1,6 +1,7 @@
 import { trigger, state, style, transition, animate } from "@angular/animations";
 import { InjectionToken } from "../../node_modules/@angular/core";
-import { FormUserTemplateData } from "../interfaces";
+import { FormUserTemplateData, IQuickOrder } from "../interfaces";
+import { StateDataStoreEntity } from "./data-state-store.class";
 
 export const APP_TABS_PAGE = 'AppTabsPage';
 export const APP_SEARCH_PAGE = 'SearchPage';
@@ -12,7 +13,7 @@ export const APP_HISTORY_ORDERS_PAGE = 'HistoryOrdersPage';
 export const APP_CART_PAGE = 'CartPage';
 export const APP_QUICK_ORDER_PAGE = 'QuickOrder';
 export const BATCH_SIZE = 3;
-export enum Currency { US = "$", LAKR = "RS" };
+export enum Currency { US = "$", LKR = "RS" };
 export const IMG_DATA_FIELD_TOKEN = 'imageURL';
 export enum CART_ACTION_FLAGS { ADD, DELETE };
 export enum APP_EV { 
@@ -31,7 +32,6 @@ export const ANGULAR_ANIMATION_OPACITY = ($out= 'void', $triggerName= 'opacity')
     state('true', style({ opacity: 1 })),
     transition(`${$out} <=> true`, animate('.5s ease-in-out'))
   ]);
-
 export const FORM_USER_TEMPLATE_DATA_TOKEN = new InjectionToken('FORM_USER_DATA_FIELDS');
 export const FORM_USER_TEMPLATE_DATA: FormUserTemplateData = [
   {
@@ -137,3 +137,10 @@ export const SOUND_MAPPER = {
   REMOVE_FROM_CART: APP_SOUNDS.REMOVE_FROM_CART,
   MODIFIED_BY_ADMIN: APP_SOUNDS.MODIFIED_BY_ADMIN
 };
+
+export const DATA_STORE_CURRENT_ORDERS_TOKEN = new InjectionToken<StateDataStoreEntity<IQuickOrder>>('current_orders');
+
+export const WINDOW_REF_TOKEN = new InjectionToken<Window>('window');
+export const WINDOW_REF = window;
+
+export enum TemplateViewStates { RequestSent, ResponseEmpty, None };

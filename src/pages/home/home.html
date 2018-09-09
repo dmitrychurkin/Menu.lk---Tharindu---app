@@ -4,72 +4,74 @@
       <ion-row nowrap justify-content-between>
         <ion-title>Menu.lk</ion-title>
         <ion-toggle color="secondary" [(ngModel)]="dataStore.isCollectionReversed" (ionChange)="toggleSort($event)"></ion-toggle>
-        <div [style.flex]="shoppingCardService.CART_OBJECT_DB && shoppingCardService.CART_OBJECT_DB.TOTAL_ORDERS_IN_CART ? 1 : 0" class="cart-widget-container">
+        <div [style.flex]="shoppingCardService.CART_OBJECT_DB && shoppingCardService.CART_OBJECT_DB.TOTAL_ORDERS_IN_CART ? 1 : 0"
+          class="cart-widget-container">
           <app-cart-widget></app-cart-widget>
         </div>
       </ion-row>
     </ion-grid>
 
     <ion-segment [ngModel]="currentSegmentValue" (ionChange)="onSegmentChange($event)">
-      <ion-segment-button [disabled]="isSegmentDisabled" [value]="restaurants">restaurants</ion-segment-button>
-      <ion-segment-button [disabled]="isSegmentDisabled" [value]="catering">catering menus</ion-segment-button>
+      <ion-segment-button [disabled]="isSegmentDisabled" [value]="restaurants">{{ messService.getMessage('restaurants_HomePage') }}</ion-segment-button>
+      <ion-segment-button [disabled]="isSegmentDisabled" [value]="catering">{{ messService.getMessage('cateringMenus_HomePage') }}</ion-segment-button>
     </ion-segment>
 
-</ion-navbar>
+  </ion-navbar>
 </ion-header>
 
 
 <ion-content padding>
-<ng-container *ngIf="dataStore.itemCollection.length">
-  <ion-list>
-    <ion-card *ngFor="let Entity of dataStore.itemCollection; let i=index" [navPush]="'MenuPage'" [navParams]="Entity">
+  <ng-container *ngIf="dataStore.itemCollection.length && dataStore.itemCollection[0].name">
+    <ion-list>
+      <ion-card *ngFor="let Entity of dataStore.itemCollection; let i=index" [navPush]="'MenuPage'" [navParams]="Entity">
 
-      <img-loader [src]="Entity.imageURL" [height]="172"></img-loader>
-      <ion-card-content>
-        <ion-row>
-          <ion-col no-padding>
-            <ion-card-title no-padding>
-              <span class="title">
-                <b>{{Entity.name}}</b>
-              </span>
-            </ion-card-title>
-          </ion-col>
-          <ion-col col-5 text-right>
-            <ion-note>
-              <ion-icon name="timer"></ion-icon>
-              <span>under {{Entity.cookingDuration}} min</span>
-            </ion-note>
-          </ion-col>
-        </ion-row>
-        <ion-row>
-          <ion-col no-padding>
-            <ion-note>
-              <span>{{Entity.category}}</span>
-              <ion-icon name="bulb"></ion-icon>
-              <span>{{Entity.takeaway ? 'takeaway' : 'not takeaway'}}</span>
-            </ion-note>
-          </ion-col>
-        </ion-row>
-        <ion-row>
-          <ion-col>
-            <ion-icon name="star"></ion-icon>
-            <span>{{Entity.rating}}</span>
-          </ion-col>
-        </ion-row>
-      </ion-card-content>
-    </ion-card>
-  </ion-list>
-  <ion-infinite-scroll (ionInfinite)="onInfinityScroll($event)">
-    <ion-infinite-scroll-content loadingText="Loading more restorants..."></ion-infinite-scroll-content>
-  </ion-infinite-scroll>
-</ng-container>
-  <ion-grid *ngIf="dataStore.isDataBeenRequested && !dataStore.itemCollection.length" style="height: 100%">
-    <ion-row style="height: 100%" align-items-center>
-      <ion-col>
-        <ion-note>
-          <h1 padding-horizontal text-center>Seems like no {{ currentSegmentValue === restaurants ? restaurants : (catering + ' services') }} here yet...</h1>
-        </ion-note>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
+        <img-loader [src]="Entity.imageURL" [height]="172"></img-loader>
+        <ion-card-content>
+          <ion-row>
+            <ion-col no-padding>
+              <ion-card-title no-padding>
+                <span class="title">
+                  <b>{{Entity.name}}</b>
+                </span>
+              </ion-card-title>
+            </ion-col>
+            <ion-col col-5 text-right>
+              <ion-note>
+                <ion-icon name="timer"></ion-icon>
+                <span>under {{Entity.cookingDuration}} min</span>
+              </ion-note>
+            </ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col no-padding>
+              <ion-note>
+                <span>{{Entity.category}}</span>
+                <ion-icon name="bulb"></ion-icon>
+                <span>{{Entity.takeaway ? 'takeaway' : 'not takeaway'}}</span>
+              </ion-note>
+            </ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col>
+              <ion-icon name="star"></ion-icon>
+              <span>{{Entity.rating}}</span>
+            </ion-col>
+          </ion-row>
+        </ion-card-content>
+      </ion-card>
+    </ion-list>
+    <ion-infinite-scroll (ionInfinite)="onInfinityScroll($event)">
+      <ion-infinite-scroll-content loadingText="Loading more restorants..."></ion-infinite-scroll-content>
+    </ion-infinite-scroll>
+  </ng-container>
+  <!-- <ion-grid *ngIf="dataStore.isDataBeenRequested && (!dataStore.itemCollection.length || !dataStore.itemCollection[0].name)" style="height: 100%">
+      <ion-row style="height: 100%" align-items-center>
+        <ion-col>
+          <ion-note>
+            <h1 padding-horizontal text-center>Seems like no {{ currentSegmentValue === restaurants ? restaurants : (catering + ' services') }} here yet...</h1>
+          </ion-note>
+        </ion-col>
+      </ion-row>
+    </ion-grid> -->
+  <extras-empty-response [subject]="messService.getMessage(currentSegmentValue === restaurants ? 'restaurants_HomePage' : 'cateringServices_HomePage')" *ngIf="dataStore.isDataBeenRequested && (!dataStore.itemCollection.length || !dataStore.itemCollection[0].name)"></extras-empty-response>
 </ion-content>

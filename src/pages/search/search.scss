@@ -1,3 +1,6 @@
 page-search {
-
+  .spinner-pane {
+    @include create-flex-grid;
+    height: auto;
+  }
 }

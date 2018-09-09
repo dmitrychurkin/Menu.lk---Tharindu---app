@@ -8,24 +8,30 @@
 
 
 <ion-content>
-  <ion-searchbar 
-    [animated]="true" 
-    [showCancelButton]="true" 
-    (ionInput)="onInput($event)" 
-    (ionCancel)="currentItems = []"
-    [(ngModel)]="model"
+  <ion-searchbar [animated]="true" [showCancelButton]="true" (ionInput)="onInput($event)" (ionCancel)="ionViewWillEnter()" [(ngModel)]="model"
     placeholder="Type name of restaurant..."></ion-searchbar>
-  <ion-list *ngIf="currentItems !== null; else NoContent">
-    <button ion-item *ngFor="let item of currentItems" [navPush]="'MenuPage'" [navParams]="item">
-      <ion-avatar item-start>
-        <img [src]="item.imageURL">
-      </ion-avatar>
-      <h2 text-capitalize>{{item.name}}</h2>
-      <p>{{item.category}}</p>
-      <ion-note item-end>{{item.collection}}</ion-note>
-    </button>
-  </ion-list>
-  <ng-template #NoContent>
-    <ion-note padding>No items found ):</ion-note>
+
+  <ion-note *ngIf="!networkService.isOnline; else OnlineContent" padding>You are offline</ion-note>
+  <ng-template #OnlineContent>
+    <ng-container [ngSwitch]="currentState">
+
+      <ion-note *ngSwitchCase="States.ResponseEmpty" padding>No items found ):</ion-note>
+
+      <div margin-top class="spinner-pane" *ngSwitchCase="States.RequestSent">
+        <ion-spinner color="primary"></ion-spinner>
+      </div>
+
+    </ng-container>
+
+    <ion-list *ngIf="currentItems.length">
+      <button ion-item *ngFor="let item of currentItems" [navPush]="'MenuPage'" [navParams]="item">
+        <ion-avatar item-start>
+          <img [src]="item.imageURL">
+        </ion-avatar>
+        <h2 text-capitalize>{{item.name}}</h2>
+        <p>{{item.category}}</p>
+        <ion-note item-end>{{item.collection}}</ion-note>
+      </button>
+    </ion-list>
   </ng-template>
 </ion-content>

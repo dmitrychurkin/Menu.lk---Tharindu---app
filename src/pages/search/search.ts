@@ -4,9 +4,11 @@ import { IonicPage } from 'ionic-angular';
 import { combineLatest, Subscription, Subject } from 'rxjs';
 import { distinctUntilChanged, map, switchMap, filter } from 'rxjs/operators';
 import { IRestaurants } from '../../interfaces';
-import { FIREBASE_DB_TOKENS } from '../pages.constants';
+import { FIREBASE_DB_TOKENS, TemplateViewStates } from '../pages.constants';
+import { NetworkService } from '../../services';
 
 const { RESTAURANTS, CATERING } = FIREBASE_DB_TOKENS;
+
 
 @IonicPage()
 @Component({
@@ -15,36 +17,46 @@ const { RESTAURANTS, CATERING } = FIREBASE_DB_TOKENS;
 })
 export class SearchPage {
 
+  States = TemplateViewStates;
+  currentState: TemplateViewStates;
+  cursorCleaner: string;
   currentItems = [];
   searchQuery$ = new Subject<string>();
   model = '';
   private _sub: Subscription;
 
 
-  constructor(private readonly _angularFirebase: AngularFirestore) {}
+  constructor(
+    private readonly _angularFirebase: AngularFirestore, 
+    readonly networkService: NetworkService) {}
 
 
   onInput(ev) {
 
     let val = ev.target.value;
 
-    if (!val || !val.trim()) return;
+    if (!val || !val.trim() || !this.networkService.isOnline) return;
     
+    this.currentItems.length = 0;
+    this.currentState = TemplateViewStates.RequestSent;
     this.searchQuery$.next(val);
 
   }
 
   ionViewWillEnter() {
-
-    this.currentItems = [];
+    
+    this.currentState = TemplateViewStates.None;
+    this.currentItems.length = 0;
+    this.model = '';
 
   }
 
   ionViewWillLeave() {
 
-    this.searchQuery$.next(Date.now().toString());
-    this.currentItems = [];
-    this.model = '';
+    this.cursorCleaner = Date.now().toString();
+    this.searchQuery$.next(this.cursorCleaner);
+    
+    this.ionViewWillEnter();
 
   }
 
@@ -61,7 +73,23 @@ export class SearchPage {
         this._angularFirebase.collection(CATERING, queryFn(text)).valueChanges()
       )),
       map(([res, cat]) => res.concat(cat).sort((itemA: IRestaurants, itemB: IRestaurants) => itemA.name > itemB.name ? 1 : itemA.name < itemB.name ? -1 : 0))
-    ).subscribe((result: Array<IRestaurants>) => !result.length ? this.currentItems = null : this.currentItems = result);
+    ).subscribe((result: Array<IRestaurants>) => {
+      
+      this.currentItems = result;
+
+      if (!result.length) {
+
+        this.currentState = this.cursorCleaner ? TemplateViewStates.None : TemplateViewStates.ResponseEmpty;
+
+      }else {
+
+        this.currentState = TemplateViewStates.None;
+
+      }
+
+      delete this.cursorCleaner;
+
+    });
 
   }
 

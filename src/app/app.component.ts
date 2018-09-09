@@ -3,7 +3,6 @@ import { SplashScreen } from '@ionic-native/splash-screen';
 import { StatusBar } from '@ionic-native/status-bar';
 import { Platform } from 'ionic-angular';
 import { APP_TABS_PAGE } from '../pages/pages.constants';
-import { NetworkService } from '../services';
 
 
 
@@ -17,14 +16,14 @@ export class MyApp {
   constructor(
     platform: Platform, 
     statusBar: StatusBar, 
-    splashScreen: SplashScreen,
-    networkService: NetworkService) {
+    splashScreen: SplashScreen) {
     platform.ready().then(() => {
+
       // Okay, so the platform is ready and our plugins are available.
       // Here you can do any higher level native things you might need.
       statusBar.backgroundColorByHexString('#488aff');
       splashScreen.hide();
-      networkService.initializeNetworkProvider();
+
     });
 
     /*For Tharindu to add data to his DB

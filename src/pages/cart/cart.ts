@@ -1,5 +1,5 @@
 import { AfterViewChecked, Component, Injector, QueryList, ViewChild, ViewChildren } from "@angular/core";
-import { Checkbox, Events, IonicPage, NavController, NavParams, PopoverController, ViewController } from "ionic-angular";
+import { Checkbox, Events, IonicPage, NavController, NavParams, PopoverController, ViewController, List } from "ionic-angular";
 import { asap } from "rxjs/Scheduler/asap";
 import { Cart, IHistoryModalTransferState, IMenuItem } from "../../interfaces";
 import { ShoppingCartService, OrdersManagerService } from "../../services";
@@ -178,7 +178,7 @@ export class CartPage extends CartBaseClass implements AfterViewChecked {
 
     this.onSelectAll();
     
-    this.list && this.list.closeSlidingItems();
+    this.lists.length && this.lists.forEach((list: List) => list.closeSlidingItems());
 
   }
 
@@ -201,7 +201,8 @@ export class CartPage extends CartBaseClass implements AfterViewChecked {
           return;
     }
 
-    this.list.closeSlidingItems();
+    this.lists.forEach((list: List) => list.closeSlidingItems());
+    
     this._isQuickOrderPageActivated = true;
     this._navCtrl.push(APP_QUICK_ORDER_PAGE);
   }

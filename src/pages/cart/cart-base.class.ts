@@ -22,7 +22,7 @@ export default class {
   @ViewChild('QuickOrder', { read: ElementRef }) areaQuickOrder: ElementRef;
   @ViewChild(Content) content: Content;
 
-  @ViewChild(List) list: List;
+  @ViewChildren(List) lists: QueryList<List>;
   @ViewChildren('ionItem') ionItem: QueryList<Item>;
 
   pageWillLeave: boolean;
@@ -85,10 +85,12 @@ export default class {
 
     const contentHeight = this.content.getContentDimensions().contentHeight;
 
-    if (this.content && this._quickOrderButtonElement && this.list && contentHeight > 0) {
+    if (this.content && this._quickOrderButtonElement && this.lists.length && contentHeight > 0) {
 
       const btnHeight = this._quickOrderButtonElement.offsetHeight;
-      const listHeight = this.list.getNativeElement().offsetHeight;
+
+      const totalListHeight = this.lists.reduce<number>((prevOffsetHeight: number, curElem: List) => prevOffsetHeight + curElem.getNativeElement().offsetHeight, 0);
+      
       let cutover = 0;
 
       if (typeof objToCalcBtnPosition === 'object') {
@@ -104,7 +106,7 @@ export default class {
 
       }
        
-      this.buttonPosition = listHeight - cutover + btnHeight < contentHeight ? A : S;
+      this.buttonPosition = totalListHeight - cutover + btnHeight < contentHeight ? A : S;
 
     }
 
@@ -156,8 +158,15 @@ export default class {
 
         case this.s.DELETE: {
 
-          this.list.sliding = !(this.isDeleteModeEnabled = true);
-          this.list.closeSlidingItems();
+          this.isDeleteModeEnabled = true;
+
+          this.lists.forEach((list: List) => {
+
+            list.sliding = false;
+            list.closeSlidingItems();
+
+          });
+
           new Promise((res: () => void) => this._checkboxResolver = res)
             .then(() => this.animator.animate({
               elemSelector: '.js-checkboxes',
@@ -182,7 +191,10 @@ export default class {
               styles: this.checkboxStyles.out,
               delay: 1,
               onBeforeTransition: (checkboxes: HTMLElement[]) => !checkboxes.forEach((checkbox: HTMLElement) => this._renderer2.setStyle(checkbox, 'transform', 'translateX(0)')),
-              onTransitionDone: () => this.list.sliding = true
+              onTransitionDone: () => {
+                this.lists.forEach((list: List) => list.sliding = true);
+                this._setPositionQuickOrderBtn();
+              }
             });
 
           }

@@ -52,6 +52,7 @@ export interface IOrder {
     collection: CollectionType;
     id: string;
     entityName: string;
+    isClosed?: boolean;
     menu: {
       type: string;
       subhead?: string;

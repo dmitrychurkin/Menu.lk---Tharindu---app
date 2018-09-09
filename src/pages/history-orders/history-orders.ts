@@ -3,12 +3,11 @@ import { Component, Inject, Injector } from "@angular/core";
 import { CollectionReference, DocumentSnapshot, Timestamp } from "@firebase/firestore-types";
 import { AngularFirestore } from "angularfire2/firestore";
 import { ActionSheetController, IonicPage, ModalController } from "ionic-angular";
-import { DataStoreForCurrentOrders } from "../../app/app.module";
 import { Cart, IHistoryModalTransferState, IQuickOrder } from "../../interfaces";
-import { AuthService, IFetcherArgs, OrdersManagerService, RootDataReceiverService } from "../../services";
+import { AuthService, IFetcherArgs, OrdersManagerService, RootDataReceiverService, MessangingService } from "../../services";
 import { StateDataStoreEntity } from "../data-state-store.class";
 import { PageBaseClass } from "../page-base.class";
-import { APP_CART_PAGE, FIREBASE_DB_TOKENS, OrderStatus, OrderManagmentActionFlag } from '../pages.constants';
+import { APP_CART_PAGE, FIREBASE_DB_TOKENS, OrderStatus, OrderManagmentActionFlag, DATA_STORE_CURRENT_ORDERS_TOKEN } from '../pages.constants';
 
 
 const { ORDERS, ORDER_CONTENT } = FIREBASE_DB_TOKENS;
@@ -68,7 +67,8 @@ export class HistoryOrdersPage extends PageBaseClass<SegmentOptions, IQuickOrder
     private readonly _afDb: AngularFirestore,
     private readonly _rootDataReceiverService: RootDataReceiverService<Cart>,
     private readonly _ordersManagerService: OrdersManagerService,
-    @Inject(DataStoreForCurrentOrders) private readonly _currentOrdersStore: StateDataStoreEntity<IQuickOrder>,
+    readonly messService: MessangingService,
+    @Inject(DATA_STORE_CURRENT_ORDERS_TOKEN) private readonly _currentOrdersStore: StateDataStoreEntity<IQuickOrder>,
     injector: Injector) {
 
     super(injector);
@@ -179,7 +179,7 @@ export class HistoryOrdersPage extends PageBaseClass<SegmentOptions, IQuickOrder
     new Promise((resolve: () => void) =>
       this.dataStore.subject$.next({
 
-        onQueryComplete: this.actionFetchDone(resolve),
+        onQueryComplete: this.actionFetchDone(resolve, null, false),
 
       })).then(() => this._presentLegend());
 

@@ -38,52 +38,68 @@
     </div>
     <div class="list-wrapper" [style.height.px]="listWrapperHeight">
 
-      <div *ngIf="ShopMenu === undefined" margin-top class="spinner-grid">
+      <!-- <div *ngIf="ShopMenu === undefined" margin-top class="spinner-grid">
         <ion-spinner color="primary"></ion-spinner>
-      </div>
+      </div> -->
+      <extras-offline *ngIf="!networkService.isOnline; else OnlineContent"></extras-offline>
+      <ng-template #OnlineContent>
+        <ng-container [ngSwitch]="currentState">
 
-      <ng-container *ngIf="ShopMenu">
-        <ion-list *ngFor="let menuType of ShopMenu">
-          <ion-item-divider color="dark">
-            <p class="list-header-h1">{{ menuType.type }}</p>
-            <p class="list-header-h3">
-              <i>{{ menuType.subhead }}</i>
-            </p>
-          </ion-item-divider>
-          <button ion-item detail-push *ngFor="let menuItem of menuType.items" (tap)="onTapItem($event, menuItem, menuType)">
-            <ion-thumbnail item-start>
-              <img-loader [style.height.px]="80" [src]="menuItem.imageURL" [height]="80" [icon-hidden]="true"></img-loader>
-            </ion-thumbnail>
+          <extras-empty-response [message]="messService.getMessage('noContent_MenuPage')" *ngSwitchCase="States.ResponseEmpty"></extras-empty-response>
+          <!-- <div *ngSwitchCase="States.ResponseEmpty" class="no-content-notice">
+            <h3 ion-text color="danger">
+              No menus for this item here yet...
+            </h3>
+          </div> -->
+      
+          <div *ngSwitchCase="States.RequestSent" margin-top class="spinner-grid">
+            <ion-spinner color="primary"></ion-spinner>
+          </div>
+      
+        </ng-container>
 
-            <p class="list-header-h2" text-capitalize>{{ menuItem.name }}</p>
-            <p>
-              <ion-note>{{menuItem.description}}</ion-note>
-            </p>
-            <ion-row>
-              <ion-col>
-                <ion-note>
-                  <span>{{ currency[menuItem.currency] }}.</span>&nbsp;
-                  <span>{{ menuItem.price }}</span>
-                </ion-note>
-              </ion-col>
-              <ion-col>
-                <ion-note>{{ menuItem.size }}</ion-note>
-              </ion-col>
-            </ion-row>
+        <ng-container *ngIf="ShopMenu.length">
+          <ion-list *ngFor="let menuType of ShopMenu">
+            <ion-item-divider color="dark">
+              <p class="list-header-h1">{{ menuType.type }}</p>
+              <p class="list-header-h3">
+                <i>{{ menuType.subhead }}</i>
+              </p>
+            </ion-item-divider>
+            <button ion-item detail-push *ngFor="let menuItem of menuType.items" (tap)="onTapItem($event, menuItem, menuType)">
+              <ion-thumbnail item-start>
+                <img-loader [style.height.px]="80" [src]="menuItem.imageURL" [height]="80" [icon-hidden]="true"></img-loader>
+              </ion-thumbnail>
 
-            <button class="btn-addToCart" [disabled]="!isCanOrder" ion-button clear item-end icon-left>Add
-              <span>&nbsp;</span>
-              <ion-icon name="cart"></ion-icon>
+              <p class="list-header-h2" text-capitalize>{{ menuItem.name }}</p>
+              <p>
+                <ion-note>{{menuItem.description}}</ion-note>
+              </p>
+              <ion-row>
+                <ion-col>
+                  <ion-note>
+                    <span>{{ currency[menuItem.currency] }}.</span>&nbsp;
+                    <span>{{ menuItem.price }}</span>
+                  </ion-note>
+                </ion-col>
+                <ion-col>
+                  <ion-note>{{ menuItem.size }}</ion-note>
+                </ion-col>
+              </ion-row>
+
+              <button class="btn-addToCart" [disabled]="!isCanOrder" ion-button clear item-end icon-left>Add
+                <span>&nbsp;</span>
+                <ion-icon name="cart"></ion-icon>
+              </button>
             </button>
-          </button>
-        </ion-list>
-      </ng-container>
-
-      <div *ngIf="ShopMenu === null" class="no-content-notice">
+          </ion-list>
+        </ng-container>
+      </ng-template>
+      <!-- <div *ngIf="ShopMenu === null" class="no-content-notice">
         <h3 ion-text color="danger">
           No menus for this item here yet...
         </h3>
-      </div>
+      </div> -->
 
     </div>
   </div>

@@ -7,10 +7,12 @@ import { AlertController } from "ionic-angular";
 import { from, Observable, of } from "rxjs";
 import { filter, pluck, shareReplay, switchMap, tap } from "rxjs/operators";
 import { asap } from "rxjs/Scheduler/asap";
-import { FormUserTemplateData, IAuthUserPayload, IProfileUserData } from "../interfaces";
-import { FORM_USER_TEMPLATE_DATA_TOKEN, ERROR_CLASS_NAME, FIREBASE_DB_TOKENS } from "../pages/pages.constants";
+import { FormUserTemplateData, IAuthUserPayload, IProfileUserData, IQuickOrder } from "../interfaces";
+import { FORM_USER_TEMPLATE_DATA_TOKEN, ERROR_CLASS_NAME, FIREBASE_DB_TOKENS, DATA_STORE_CURRENT_ORDERS_TOKEN } from "../pages/pages.constants";
 import { AlertUIValidatorService } from "./alert-validator.service";
 import { ShoppingCartService } from "./shopping-cart.service";
+import { NetworkService } from "./network.service";
+import { StateDataStoreEntity } from "../pages/data-state-store.class";
 
 export enum Providers { GOOGLE, PWD, ANONYMUS };
 
@@ -26,6 +28,7 @@ export class AuthService {
         delete this.isNewUser;
         this._userProfileDataSetter();
         this._shoppingCartService.removeFromCart(null, true, 'clear');
+        this._dataStorageCurrentOrders.uninitialize(true);
 
       }),
       switchMap((user: User | null) => this._userProfileDataController(user)),
@@ -41,6 +44,8 @@ export class AuthService {
     readonly angularFirestore: AngularFirestore,
     readonly alertCtrl: AlertController,
     private readonly _shoppingCartService: ShoppingCartService,
+    private readonly _networkService: NetworkService,
+    @Inject(DATA_STORE_CURRENT_ORDERS_TOKEN) private readonly _dataStorageCurrentOrders: StateDataStoreEntity<IQuickOrder>,
     @Inject(FORM_USER_TEMPLATE_DATA_TOKEN) private _formTemplateData: FormUserTemplateData) {
 
       this._setupUserProfileData();
@@ -331,7 +336,7 @@ export class AuthService {
   }
 
   private _userProfileDataController(user: User | null): Observable<IAuthUserPayload | [ boolean, void ]> {
-
+    
     if (!user) {
 
       return of({ userData: null });
@@ -346,7 +351,7 @@ export class AuthService {
       .pipe(
         switchMap((profileUserData: IProfileUserData | undefined) => {
 
-          if (!profileUserData) {
+          if (!profileUserData && this._networkService.isOnline) {
 
             this.isNewUser = true;
 

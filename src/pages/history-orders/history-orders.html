@@ -20,74 +20,77 @@
 
 </ion-header>
 <ion-content>
-  <ng-container *ngIf="dataStore.itemCollection.length">
-    <ion-list no-lines>
-      <ion-item *ngFor="let order of dataStore.itemCollection">
-        <div class="cards-container">
+  <extras-offline *ngIf="!networkService.isOnline; else OnlineContent"></extras-offline>
+  <ng-template #OnlineContent>
+    <ng-container *ngIf="dataStore.itemCollection.length">
+      <ion-list no-lines>
+        <ion-item *ngFor="let order of dataStore.itemCollection">
+          <div class="cards-container">
 
-          <div [attr.data-action]="OrderManagmentActionFlag.VIEW" (tap)="onBtnAction($event, order)" class="order-card order-card_back" [style.background]="statusColorsMap[order.orderStatus].cartColors[1]">
-            <ion-grid no-padding>
+            <div [attr.data-action]="OrderManagmentActionFlag.VIEW" (tap)="onBtnAction($event, order)" class="order-card order-card_back" [style.background]="statusColorsMap[order.orderStatus].cartColors[1]">
+              <ion-grid no-padding>
 
-              <ion-row>
-                <ion-col>
-                  <div class="order-card_blackline"></div>
-                </ion-col>
-              </ion-row>
+                <ion-row>
+                  <ion-col>
+                    <div class="order-card_blackline"></div>
+                  </ion-col>
+                </ion-row>
 
-              <ion-row justify-content-end>
-                <ion-col col-3>
-                  <div [style.visibility]="order.orderStatus == OrderStatus.DELIVERY ? 'hidden' : ''" class="order-card_btns">
-                    <button [attr.data-action]="statusColorsMap[order.orderStatus].orderActionFlag" [ngStyle]="{ visibility: order.orderStatus != OrderStatus.DONE ? '' : 'hidden', transform: order.orderStatus < OrderStatus.DELIVERY ? 'translateY(50%)' : '' }"  
-                      ion-button outline round [color]="order.orderStatus == OrderStatus.CANCELLED ? 'secondary' : 'danger'">{{ statusColorsMap[order.orderStatus].buttonName }}</button>
-                    <button [attr.data-action]="OrderManagmentActionFlag.DELETE" [ngStyle]="{ visibility: order.orderStatus > OrderStatus.DELIVERY ? '' : 'hidden', transform: order.orderStatus == OrderStatus.DONE ? 'translateY(-50%)' : '' }"
-                      ion-button outline round color="danger">delete</button>
-                  </div>
-                </ion-col>
-              </ion-row>
+                <ion-row justify-content-end>
+                  <ion-col col-3>
+                    <div [style.visibility]="order.orderStatus == OrderStatus.DELIVERY ? 'hidden' : ''" class="order-card_btns">
+                      <button [attr.data-action]="statusColorsMap[order.orderStatus].orderActionFlag" [ngStyle]="{ visibility: order.orderStatus != OrderStatus.DONE ? '' : 'hidden', transform: order.orderStatus < OrderStatus.DELIVERY ? 'translateY(50%)' : '' }"  
+                        ion-button outline round [color]="order.orderStatus == OrderStatus.CANCELLED ? 'secondary' : 'danger'">{{ statusColorsMap[order.orderStatus].buttonName }}</button>
+                      <button [attr.data-action]="OrderManagmentActionFlag.DELETE" [ngStyle]="{ visibility: order.orderStatus > OrderStatus.DELIVERY ? '' : 'hidden', transform: order.orderStatus == OrderStatus.DONE ? 'translateY(-50%)' : '' }"
+                        ion-button outline round color="danger">delete</button>
+                    </div>
+                  </ion-col>
+                </ion-row>
 
-              <ion-row>
-                <ion-col>
-                  <div padding-horizontal text-center class="order-card_idnum">Order ID:
-                    <span>{{ order.id }}</span>
-                  </div>
-                </ion-col>
-              </ion-row>
+                <ion-row>
+                  <ion-col>
+                    <div padding-horizontal text-center class="order-card_idnum">Order ID:
+                      <span>{{ order.id }}</span>
+                    </div>
+                  </ion-col>
+                </ion-row>
 
-            </ion-grid>
-          </div>
+              </ion-grid>
+            </div>
 
-          <div [attr.data-action]="OrderManagmentActionFlag.VIEW" (tap)="onBtnAction($event, order)" padding class="order-card order-card_front" [style.background]="statusColorsMap[order.orderStatus].cartColors[0]">
-            <h2 class="order-card_title" text-center>Total cost:
-              <span>{{order.currency + ' ' + order.price}}</span>
-            </h2>
-            <timeline-order-status [orderStatus]="order.orderStatus"></timeline-order-status>
-            <div class="order-card_date" text-center>
-              <div ion-text color="light">Ordered:</div>
-              <div ion-text color="light">
-                <span>&nbsp;{{dateFormatter(order.timestamp)}}</span>
+            <div [attr.data-action]="OrderManagmentActionFlag.VIEW" (tap)="onBtnAction($event, order)" padding class="order-card order-card_front" [style.background]="statusColorsMap[order.orderStatus].cartColors[0]">
+              <h2 class="order-card_title" text-center>Total cost:
+                <span>{{order.currency + ' ' + order.price}}</span>
+              </h2>
+              <timeline-order-status [orderStatus]="order.orderStatus"></timeline-order-status>
+              <div class="order-card_date" text-center>
+                <div ion-text color="light">Ordered:</div>
+                <div ion-text color="light">
+                  <span>&nbsp;{{dateFormatter(order.timestamp)}}</span>
+                </div>
               </div>
             </div>
+
           </div>
+        </ion-item>
+      </ion-list>
 
-        </div>
-      </ion-item>
-    </ion-list>
-
-    <ion-infinite-scroll (ionInfinite)="onInfinityScroll($event)">
-      <ion-infinite-scroll-content loadingText="Loading orders...">
-      </ion-infinite-scroll-content>
-    </ion-infinite-scroll>
-  </ng-container>
+      <ion-infinite-scroll (ionInfinite)="onInfinityScroll($event)">
+        <ion-infinite-scroll-content loadingText="Loading orders...">
+        </ion-infinite-scroll-content>
+      </ion-infinite-scroll>
+    </ng-container>
 
 
-  <ion-grid *ngIf="dataStore.isDataBeenRequested && !dataStore.itemCollection.length" style="height: 100%">
-    <ion-row style="height: 100%" align-items-center>
-      <ion-col>
-        <ion-note>
-          <h1 padding-horizontal text-center>Seems like no orders here yet...</h1>
-        </ion-note>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
-
+    <!-- <ion-grid *ngIf="dataStore.isDataBeenRequested && !dataStore.itemCollection.length" style="height: 100%">
+      <ion-row style="height: 100%" align-items-center>
+        <ion-col>
+          <ion-note>
+            <h1 padding-horizontal text-center>Seems like no orders here yet...</h1>
+          </ion-note>
+        </ion-col>
+      </ion-row>
+    </ion-grid> -->
+    <extras-empty-response [subject]="messService.getMessage('subject_HistoryOrdersPage')" *ngIf="dataStore.isDataBeenRequested && !dataStore.itemCollection.length"></extras-empty-response>
+  </ng-template>
 </ion-content>

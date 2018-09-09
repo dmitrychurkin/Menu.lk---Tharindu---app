@@ -4,6 +4,7 @@ import { IQuickOrder } from "../interfaces";
 import { FIREBASE_DB_TOKENS, SOUND_MAPPER, OrderManagmentActionFlag, OrderStatus } from "../pages/pages.constants";
 import { ToastMessangerService } from "./toast-messanger.service";
 import { playSound } from ".";
+import { MessangingService } from "./messaging-registry.service";
 
 
 const { ORDERS, ORDER_CONTENT } = FIREBASE_DB_TOKENS;
@@ -13,6 +14,7 @@ export class OrdersManagerService {
 
   constructor(
     private readonly _angularFirestore: AngularFirestore, 
+    private readonly _messService: MessangingService,
     private readonly _toastMessService: ToastMessangerService) {}
 
   dispatchOrderAction(ACTION_FLAG: OrderManagmentActionFlag, { id, orderStatus, cancelledFromState }: IQuickOrder) {
@@ -31,9 +33,9 @@ export class OrdersManagerService {
             angularFirestreDoc.collection(ORDER_CONTENT)
               .doc(id)
               .delete()
-          ]);
+          ]).then(_ => undefined);
 
-        case OrderManagmentActionFlag.RESTORE:
+        case OrderManagmentActionFlag.RESTORE: 
           return angularFirestreDoc
             .update({ orderStatus: cancelledFromState });
 
@@ -41,17 +43,19 @@ export class OrdersManagerService {
 
     }.call(this))
       .catch((err: Error) => err)
-      .then(() => playSound(SOUND_MAPPER[ACTION_FLAG]))
       .then((err?: Error) => {
 
-        const message = err ? `Error occured -${' ' + err.message || ''} try again`
-                            : `Order "${id}" has been successfully deleted`;
+        //const message = err && `Error occured -${' ' + err.message || ''} try again`;
+                            //: `Order "${id}" has been successfully deleted`;
+                            
+        !err && playSound(SOUND_MAPPER[ACTION_FLAG])
 
-        if (err || ACTION_FLAG == OrderManagmentActionFlag.DELETE) {
+        //if (err || ACTION_FLAG == OrderManagmentActionFlag.DELETE) {
        
-          return this._toastMessService.showToast({ message, showCloseButton: true, closeButtonText: 'OK' });
+        return this._toastMessService.showToast({ 
+          message: this._messService.getMessage(err ? 'appError' : `${ACTION_FLAG}_${OrdersManagerService.name}`, id), showCloseButton: true, closeButtonText: 'OK' }) ;
         
-        }
+        //}
         
       })
 

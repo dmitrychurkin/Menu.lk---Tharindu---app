@@ -1,16 +1,15 @@
 import { animate, AnimationBuilder, state, style, transition, trigger } from '@angular/animations';
 import { AfterViewChecked, Component, ElementRef, Inject, ViewChild } from '@angular/core';
 import { CollectionReference, DocumentChangeAction } from 'angularfire2/firestore';
+import { User } from 'firebase';
 import { Events, IonicPage, Tabs } from 'ionic-angular';
 import { distinctUntilChanged, pluck } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
-import { User } from 'firebase';
-import { DataStoreForCurrentOrders } from '../../app/app.module';
 import { ISignInMeta, LoginWidgetComponent } from '../../components';
 import { IQuickOrder } from '../../interfaces';
-import { AuthService, IPWDSignInFlowHandlers, OrdersNotificatorService, Providers, RootDataReceiverService, ToastMessangerService } from '../../services';
+import { AuthService, OrdersNotificatorService, Providers, RootDataReceiverService, ToastMessangerService, IPWDSignInFlowHandlers } from '../../services';
 import { StateDataStoreEntity } from '../data-state-store.class';
-import { APP_EV, APP_HOME_PAGE, APP_PROFILE_PAGE, APP_SEARCH_PAGE, OrderStatus } from '../pages.constants';
+import { APP_EV, APP_HOME_PAGE, APP_PROFILE_PAGE, APP_SEARCH_PAGE, DATA_STORE_CURRENT_ORDERS_TOKEN, OrderStatus } from '../pages.constants';
 import AppTabsAnimations from './app-tabs.animation';
 
 export enum AnimationLifecicleSteps {
@@ -55,12 +54,12 @@ export class AppTabsPage implements AfterViewChecked {
 
   componentAnimations: AppTabsAnimations;
   private _sub: Subscription;
-  private _flag: number;
+  private _flag: Providers;
 
   constructor(readonly authProvider: AuthService,
     readonly toastMessanger: ToastMessangerService,
     readonly events: Events,
-    @Inject(DataStoreForCurrentOrders) private readonly _dataStorageCurrentOrders: StateDataStoreEntity<IQuickOrder>,
+    @Inject(DATA_STORE_CURRENT_ORDERS_TOKEN) private readonly _dataStorageCurrentOrders: StateDataStoreEntity<IQuickOrder>,
     private readonly _rootDataReceiverService: RootDataReceiverService<IQuickOrder>,
     private readonly _ordersNotificatorService: OrdersNotificatorService,
     animationBuilder: AnimationBuilder) {

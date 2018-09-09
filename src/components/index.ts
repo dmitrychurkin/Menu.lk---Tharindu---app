@@ -4,3 +4,6 @@ export * from './cart-widget/cart-widget.module';
 export * from './cart-widget/cart-widget.component';
 export * from './login-widget/login-widget.module';
 export * from './login-widget/login-widget.component';
+export * from './extras/extras.module';
+export * from './extras/empty-response-tpl';
+export * from './extras/offline-tpl';

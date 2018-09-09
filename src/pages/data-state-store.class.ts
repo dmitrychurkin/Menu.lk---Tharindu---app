@@ -72,8 +72,8 @@ export class StateDataStoreEntity<T> implements IStateDataStoreEntity<T> {
         objectWithSub.length = 0;
 
       }
-      
-      this.subject$.unsubscribe();
+      this._queryDocumentSnapshot.length = 0;
+      // this.subject$.unsubscribe();
 
     }
   }

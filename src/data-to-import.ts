@@ -271,3 +271,12 @@ export const FIRESTORE_DATA = {
     } ]
   }
 };
+
+/**
+ * <universal-links>
+        <host name="ak5x3.app.goo.gl" scheme="https" />
+        <host name="menu-lk.firebaseapp.com" scheme="https">
+            <path url="/__/auth/callback" />
+        </host>
+    </universal-links>
+ */

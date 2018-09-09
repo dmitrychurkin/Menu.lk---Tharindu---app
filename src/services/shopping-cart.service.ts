@@ -5,6 +5,7 @@ import { Cart, IEntityInCart, IMenuItem, IMenuType, IOrder, CurrencyType } from 
 import { APP_EV, CART_ACTION_FLAGS, DATABASE_TOKENS, MAX_CART_ITEMS, SOUND_MAPPER } from "../pages/pages.constants";
 import { ToastMessangerService } from "./toast-messanger.service";
 import { playSound } from ".";
+import { MessangingService } from "./messaging-registry.service";
 
 const { ADD_TO_CART, REMOVE_FROM_CART } = SOUND_MAPPER;
 
@@ -17,6 +18,7 @@ export class ShoppingCartService {
   constructor(
     private readonly _events: Events,
     private readonly _storage: Storage,
+    private readonly _messService: MessangingService,
     private readonly _toastMessanger: ToastMessangerService) {
 
       this.cartReady = this._cart.then((CartEntity: Cart) => this.CART_OBJECT_DB = CartEntity);
@@ -104,7 +106,7 @@ export class ShoppingCartService {
 
       if (TOTAL_ORDERS_IN_CART + Order.menu.quantity > MAX_CART_ITEMS) {
 
-        throw new Error('Too many items in cart, first buy this!');
+        throw new Error( this._messService.getMessage(`tooManyOrders_${ShoppingCartService.name}`) );
 
       }
 
@@ -182,7 +184,7 @@ export class ShoppingCartService {
 
       return this.completer({
         actionFlag: CART_ACTION_FLAGS.ADD,
-        message: `${Order.menu.quantity} ${Order.menu.item.name.toUpperCase()} was added to cart`,
+        message: `${Order.menu.quantity} ${Order.menu.item.name.toUpperCase()} ${this._messService.getMessage(`${CART_ACTION_FLAGS.ADD}_${ShoppingCartService.name}`)}`,
         soundPath: ADD_TO_CART,
         itemCount: Order.menu.quantity,
         currency: Order.menu.item.currency,
@@ -191,7 +193,7 @@ export class ShoppingCartService {
 
     } catch (err) {
       // Handling all errors here :)
-      return this.toastMessageHandler(`${(err && err.message) || 'Error occured while trying to add to cart'}`);
+      return this.toastMessageHandler( this._messService.getMessage(`${CART_ACTION_FLAGS.ADD}Error_${ShoppingCartService.name}`) /*`${(err && err.message) || 'Error occured while trying to add to cart'}`*/);
 
     }
 
@@ -212,7 +214,7 @@ export class ShoppingCartService {
         if (IMenuItem) {
           
           const { quantity, name } = IMenuItem;
-          message = `${quantity} ${name.toUpperCase()} was removed from cart`;
+          message = `${quantity} ${name.toUpperCase()} ${this._messService.getMessage(`${CART_ACTION_FLAGS.DELETE}_${ShoppingCartService.name}`)}`;
 
         }
 
@@ -237,7 +239,7 @@ export class ShoppingCartService {
 
       }
       
-      message = !flag ? (message || `${itemCount} items was removed from cart`) : '';
+      message = !flag ? (message || `${itemCount} ${this._messService.getMessage(`${CART_ACTION_FLAGS.DELETE}All_${ShoppingCartService.name}`)}`) : '';
       
       return this.completer({
         actionFlag: CART_ACTION_FLAGS.DELETE,
@@ -249,7 +251,7 @@ export class ShoppingCartService {
 
     }catch(e) {
 
-      return this.toastMessageHandler(`${(e && e.message) || 'Error occured while trying to remove from cart'}`);
+      return this.toastMessageHandler( this._messService.getMessage(`${CART_ACTION_FLAGS.DELETE}Error_${ShoppingCartService.name}`) /*`${(e && e.message) || 'Error occured while trying to remove from cart'}`*/);
 
     }
 
@@ -299,7 +301,7 @@ export class ShoppingCartService {
 
     } catch (err) {
 
-      return this.toastMessageHandler(`${(err && err.message) || 'Error occured'}`);
+      return this.toastMessageHandler(this._messService.getMessage('appError')/*`${(err && err.message) || 'Error occured'}`*/);
 
     }
 
@@ -332,7 +334,7 @@ export class ShoppingCartService {
       .get(DATABASE_TOKENS.SHOPPING_CART)
       .then((CartEntity: Cart) => {
 
-        if (!CartEntity || !Array.isArray(CartEntity.CART) || typeof CartEntity.TOTAL_ORDERS_IN_CART !== 'number') {
+        if (!CartEntity || !Array.isArray(CartEntity.CART) || typeof CartEntity.TOTAL_ORDERS_IN_CART !== 'number' || typeof CartEntity.TOTAL_COST !== 'number') {
 
           CartEntity = { TOTAL_ORDERS_IN_CART: 0, TOTAL_COST: 0, CART: [] };
 
