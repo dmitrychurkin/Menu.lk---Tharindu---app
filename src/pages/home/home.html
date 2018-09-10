@@ -64,14 +64,8 @@
       <ion-infinite-scroll-content loadingText="Loading more restorants..."></ion-infinite-scroll-content>
     </ion-infinite-scroll>
   </ng-container>
-  <!-- <ion-grid *ngIf="dataStore.isDataBeenRequested && (!dataStore.itemCollection.length || !dataStore.itemCollection[0].name)" style="height: 100%">
-      <ion-row style="height: 100%" align-items-center>
-        <ion-col>
-          <ion-note>
-            <h1 padding-horizontal text-center>Seems like no {{ currentSegmentValue === restaurants ? restaurants : (catering + ' services') }} here yet...</h1>
-          </ion-note>
-        </ion-col>
-      </ion-row>
-    </ion-grid> -->
-  <extras-empty-response [subject]="messService.getMessage(currentSegmentValue === restaurants ? 'restaurants_HomePage' : 'cateringServices_HomePage')" *ngIf="dataStore.isDataBeenRequested && (!dataStore.itemCollection.length || !dataStore.itemCollection[0].name)"></extras-empty-response>
+  
+  <extras-empty-response 
+    [subject]="messService.getMessage(currentSegmentValue === restaurants ? 'restaurants_HomePage' : 'cateringServices_HomePage')" 
+    *ngIf="dataStore.isDataBeenRequested && (!dataStore.itemCollection.length || !dataStore.itemCollection[0].name)"></extras-empty-response>
 </ion-content>

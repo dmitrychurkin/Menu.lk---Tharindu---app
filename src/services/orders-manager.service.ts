@@ -45,22 +45,15 @@ export class OrdersManagerService {
       .catch((err: Error) => err)
       .then((err?: Error) => {
 
-        //const message = err && `Error occured -${' ' + err.message || ''} try again`;
-                            //: `Order "${id}" has been successfully deleted`;
-                            
         !err && playSound(SOUND_MAPPER[ACTION_FLAG])
-
-        //if (err || ACTION_FLAG == OrderManagmentActionFlag.DELETE) {
        
         return this._toastMessService.showToast({ 
           message: this._messService.getMessage(err ? 'appError' : `${ACTION_FLAG}_${OrdersManagerService.name}`, id), 
           showCloseButton: true, 
           closeButtonText: 'OK' 
         });
-        
-        //}
-        
-      })
+
+      });
 
   }
 

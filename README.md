@@ -3,10 +3,10 @@
 This is the Ionic shopping app, created by the request of my friend Tharindu de Soysa from Sri Lanka.
 
 ## Important!
-**App primarily been developed for Android** 
+**App primarily been developed for Android**     
 Due to lack of time I decided to build app on top of Firebase backend.
 
-**ionic-angular npm module has 2 following bugs. In order to fix them please amend as this files**
+**ionic-angular npm module has 2 following bugs. In order to fix them, please amend this files**       
 Module "PLATFORM" -> File "platform.js"
 line 607 -> Body of function onTransitionEnd must to be wrapped in try-catch block to avoid exeption, see exaple below:
 ```javascript
@@ -76,7 +76,7 @@ InfiniteScroll.prototype._onScroll = function (ev) {
   }catch(e) {}
 };
 ```
-**plugins/cordova-universal-links-plugin in order to work properly with android ~7.0.0 requires to make following changes**
+**plugins/cordova-universal-links-plugin in order to work properly with android ~7.0.0 require to make following changes**    
 File "hooks/lib/android/manifestWriter.js"
 line 21 -> Need substitute 
 ```javascript
@@ -86,4 +86,4 @@ with
 ```javascript
   var pathToManifest = path.join(cordovaContext.opts.projectRoot, 'platforms', 'android', 'app', 'src', 'main', 'AndroidManifest.xml');
 ```
-
+### TODO: transfer all inline string messages from any modules into dedicated "messaging-registry.service"

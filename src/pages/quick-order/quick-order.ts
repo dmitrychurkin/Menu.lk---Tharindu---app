@@ -1,11 +1,12 @@
+import { APP_QUICK_ORDER_PAGE, APP_CART_PAGE } from './../pages.constants';
 import { Component, Renderer2, Inject } from "@angular/core";
 import { NgForm } from "@angular/forms";
 import { AngularFirestore } from "angularfire2/firestore";
-import { IonicPage, NavController, TextInput } from "ionic-angular";
+import { IonicPage, NavController, TextInput, Platform } from "ionic-angular";
 import { asap } from "rxjs/Scheduler/asap";
 import { IQuickOrder, FormUserTemplateData } from "../../interfaces";
-import { AuthService, ShoppingCartService, ToastMessangerService, NetworkService } from "../../services";
-import { ANGULAR_ANIMATION_OPACITY, CART_ACTION_FLAGS, OrderStatus, FORM_USER_TEMPLATE_DATA_TOKEN, FIREBASE_DB_TOKENS, SOUND_MAPPER } from "../pages.constants";
+import { AuthService, ShoppingCartService, ToastMessangerService, NetworkService, MessangingService } from "../../services";
+import { ANGULAR_ANIMATION_OPACITY, CART_ACTION_FLAGS, OrderStatus, FIREBASE_DB_TOKENS, SOUND_MAPPER, FORM_USER_TEMPLATE_DATA } from "../pages.constants";
 
 const { ORDERS, ORDER_CONTENT } = FIREBASE_DB_TOKENS;
 
@@ -18,16 +19,20 @@ const { ORDERS, ORDER_CONTENT } = FIREBASE_DB_TOKENS;
 })
 export class QuickOrder {
 
-  isQuickOrderSent = false;
+  static isQuickOrderSent = false;
+
+  selfRef = QuickOrder;
 
   constructor(
-    @Inject(FORM_USER_TEMPLATE_DATA_TOKEN) readonly formTemplateData: FormUserTemplateData,
+    @Inject(FORM_USER_TEMPLATE_DATA) readonly formTemplateData: FormUserTemplateData,
     private readonly _renderer2: Renderer2, 
     private readonly _af: AngularFirestore,
     private readonly _authService: AuthService,
     private readonly _navCtrl: NavController,
     private readonly _networkService: NetworkService,
     private readonly _toastMessService: ToastMessangerService,
+    private readonly _messService: MessangingService,
+    private readonly _platform: Platform,
     private readonly _shoppingCartService: ShoppingCartService) {}
 
 
@@ -64,9 +69,9 @@ export class QuickOrder {
 
   onQuickOrder({ invalid, value }: NgForm) {
 
-    if (invalid || this.isQuickOrderSent || !this._networkService.checkNetwork()) return;
+    if (invalid || QuickOrder.isQuickOrderSent || !this._networkService.checkNetwork()) return;
 
-    this.isQuickOrderSent = true;
+    QuickOrder.isQuickOrderSent = true;
 
     const { isAnonymous, uid } = this._authService.userInstance;
     const { CURRENCY, TOTAL_COST } = this._shoppingCartService.CART_OBJECT_DB;
@@ -97,20 +102,42 @@ export class QuickOrder {
                       .then((err?: Error) => {
                         
                         const toastOptions = {
-                          message: `Order "${orderId}" been successfully PLACED, our support service will contact you shortly`,
+                          message: this._messService.getMessage(`${OrderStatus.PLACED}_${QuickOrder.name}`, orderId),
                           showCloseButton: true,
                           closeButtonText: 'Ok'
                         };
 
                         return err ? 
-                                this._toastMessService.showToast({ ...toastOptions, message: `Error occured - ${err.message}, try again later` })
-                                                          .then(() => { this.isQuickOrderSent = false; })
+                                this._toastMessService.showToast({ ...toastOptions, message: this._messService.getMessage( this._platform.is('cordova') ? 'appError' : (err && err.message) ) })
+                                                          .then(() => { QuickOrder.isQuickOrderSent = false; })
                                   :
                                 this._shoppingCartService.completer({ 
                                   actionFlag: CART_ACTION_FLAGS.DELETE,
                                   message: toastOptions,
                                   soundPath: SOUND_MAPPER.SEND_ORDER
-                                }).then(() => { asap.schedule(() => this._navCtrl.canGoBack() && this._navCtrl.popToRoot(), 1000); });
+                                }).then(() => {
+
+                                  asap.schedule(() => {
+
+                                    const searchViews = [APP_QUICK_ORDER_PAGE, APP_CART_PAGE];
+                                    const viewsArr = this._navCtrl.getViews();
+                                    
+                                    let viewIndex = viewsArr.length - 1;
+
+                                    do {
+
+                                      const foundIndex = searchViews.indexOf( viewsArr[viewIndex].name );
+                                      if (this._navCtrl.canGoBack() && ~foundIndex) {
+
+                                        viewsArr[viewIndex].dismiss();
+
+                                      }
+
+                                    }while(viewIndex--);
+
+                                  }, 1000);
+                              
+                                });
 
                       });
     

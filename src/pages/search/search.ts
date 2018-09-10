@@ -5,7 +5,7 @@ import { combineLatest, Subscription, Subject } from 'rxjs';
 import { distinctUntilChanged, map, switchMap, filter } from 'rxjs/operators';
 import { IRestaurants } from '../../interfaces';
 import { FIREBASE_DB_TOKENS, TemplateViewStates } from '../pages.constants';
-import { NetworkService } from '../../services';
+import { NetworkService, MessangingService } from '../../services';
 
 const { RESTAURANTS, CATERING } = FIREBASE_DB_TOKENS;
 
@@ -27,8 +27,9 @@ export class SearchPage {
 
 
   constructor(
-    private readonly _angularFirebase: AngularFirestore, 
-    readonly networkService: NetworkService) {}
+    private readonly _angularFirebase: AngularFirestore,
+            readonly messService: MessangingService, 
+            readonly networkService: NetworkService) {}
 
 
   onInput(ev) {

@@ -3,17 +3,17 @@
   <ion-navbar no-border-bottom>
     <ion-grid>
       <ion-row>
-        <ion-title>Order Dashboard</ion-title>
+        <ion-title text-capitalize>{{ messService.getMessage('title_HistoryOrdersPage') }}</ion-title>
       </ion-row>
     </ion-grid>
   </ion-navbar>
   <ion-toolbar no-border-top>
     <ion-segment [ngModel]="currentSegmentValue" (ionChange)="onSegmentChange($event, 'orders')">
       <ion-segment-button value="current_orders" [disabled]="isSegmentDisabled">
-        current orders
+        {{ messService.getMessage('currentOrders_HistoryOrdersPage') }}
       </ion-segment-button>
       <ion-segment-button value="history_orders" [disabled]="isSegmentDisabled">
-        history orders
+        {{ messService.getMessage('historyOrders_HistoryOrdersPage') }}
       </ion-segment-button>
     </ion-segment>
   </ion-toolbar>
@@ -81,16 +81,8 @@
       </ion-infinite-scroll>
     </ng-container>
 
-
-    <!-- <ion-grid *ngIf="dataStore.isDataBeenRequested && !dataStore.itemCollection.length" style="height: 100%">
-      <ion-row style="height: 100%" align-items-center>
-        <ion-col>
-          <ion-note>
-            <h1 padding-horizontal text-center>Seems like no orders here yet...</h1>
-          </ion-note>
-        </ion-col>
-      </ion-row>
-    </ion-grid> -->
-    <extras-empty-response [subject]="messService.getMessage('subject_HistoryOrdersPage')" *ngIf="dataStore.isDataBeenRequested && !dataStore.itemCollection.length"></extras-empty-response>
+    <extras-empty-response 
+      [subject]="messService.getMessage('subject_HistoryOrdersPage')" 
+      *ngIf="dataStore.isDataBeenRequested && !dataStore.itemCollection.length"></extras-empty-response>
   </ng-template>
 </ion-content>

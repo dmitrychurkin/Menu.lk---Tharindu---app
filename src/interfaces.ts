@@ -52,7 +52,7 @@ export interface IOrder {
     collection: CollectionType;
     id: string;
     entityName: string;
-    isClosed?: boolean;
+    resourceLink?: IRestaurants;
     menu: {
       type: string;
       subhead?: string;

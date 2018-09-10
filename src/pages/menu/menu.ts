@@ -5,8 +5,8 @@ import { Header, IonicPage, NavController, NavParams, Platform, Tabs } from 'ion
 import { Subscription } from 'rxjs';
 import { delay } from 'rxjs/operators';
 import { IMenuItem, IMenuType, IOrder, IRestaurants } from '../../interfaces';
-import { ShoppingCartService, MessangingService, NetworkService } from '../../services';
-import { APP_SHOP_ITEM_PAGE, Currency, IMG_DATA_FIELD_TOKEN, FIREBASE_DB_TOKENS, APP_MENU_PAGE, TemplateViewStates } from '../pages.constants';
+import { ShoppingCartService, MessangingService, NetworkService, AvailabilityService } from '../../services';
+import { APP_SHOP_ITEM_PAGE, Currency, IMG_DATA_FIELD_TOKEN, FIREBASE_DB_TOKENS, TemplateViewStates, MAX_CART_ITEMS } from '../pages.constants';
 
 
 const { MENUS } = FIREBASE_DB_TOKENS;
@@ -25,13 +25,9 @@ export class MenuPage  {
   currency = Currency;
   RestaurantData: IRestaurants;
   ShopMenu = [];
-  
-  backgroundImage: string;
-
   listContainerHeight: number;
   listWrapperHeight: number;
 
-  private _isShopClosed: boolean;
   private _shopMenuSub: Subscription;
   private _screenOrientationSub: Subscription;
   private _pageTransitionLock: boolean;
@@ -40,6 +36,7 @@ export class MenuPage  {
               private readonly _navCtrl: NavController,
               private readonly _shoppingCartService: ShoppingCartService,
               private readonly _tabs: Tabs,
+                      readonly availabilyService: AvailabilityService,
                       readonly messService: MessangingService,
                       readonly networkService: NetworkService,
                               screenOrientation: ScreenOrientation,
@@ -47,8 +44,9 @@ export class MenuPage  {
                               afDb: AngularFirestore) {
     
     this.RestaurantData = navParams.data;
-    this.backgroundImage = `url(${this.RestaurantData[IMG_DATA_FIELD_TOKEN]})`;                          
+
     this.currentState = TemplateViewStates.RequestSent;
+
     const menuDoc = afDb.doc<TShnopMenus>(`${MENUS}/${this.RestaurantData.id}`);
     this._shopMenuSub = menuDoc.valueChanges()
                                 .subscribe((shopMenus: TShnopMenus) => {
@@ -72,37 +70,29 @@ export class MenuPage  {
                                             );
   }
 
+  get backgroundImage() {
+
+    return `url(${this.RestaurantData[IMG_DATA_FIELD_TOKEN]})`;
+
+  }
+
   ionViewWillEnter() {
+
     delete this._pageTransitionLock;
+
   }
 
   ionViewWillUnload() {
+
     this._shopMenuSub.unsubscribe();
     this._screenOrientationSub.unsubscribe();
     this._shopMenuSub = this._screenOrientationSub = undefined;
+
   }
 
   ionViewDidEnter() {
+
     this._setHeight();
-  }
-
-  get workingTime() {
-
-    const { workingTime } = this.RestaurantData;
-
-    const { isClosed, message } = this._checkAvailability( 
-      Array.isArray(workingTime) ? { open: workingTime[0], close: workingTime[1] } : workingTime
-    );
-
-    this._isShopClosed = isClosed;
-
-    return message;
-
-  }
-
-  get isCanOrder() {
-
-    return this.RestaurantData.takeaway && !this._isShopClosed;
 
   }
 
@@ -130,9 +120,13 @@ export class MenuPage  {
     const { id, name: entityName, collection } = this.RestaurantData;
 
     return {
-      id, entityName, collection, isClosed: this._isShopClosed,
+      id, entityName, collection, resourceLink: this.RestaurantData,
       menu: {
-        type, subhead, userNotes: '', quantity: 1, item: menuItem
+        type, 
+        subhead, 
+        userNotes: '', 
+        quantity: MAX_CART_ITEMS - this._shoppingCartService.CART_OBJECT_DB.TOTAL_ORDERS_IN_CART == 0 ? 0 : 1, 
+        item: menuItem
       }
     };
   }
@@ -157,53 +151,6 @@ export class MenuPage  {
   
     return this.listContainerHeight - (this._headerHeight + this._tabbarHeight);
   
-  }
-
-  private _checkAvailability({ open, close }: { open: string; close: string }, date= new Date): { isClosed: boolean, message: string } {
-
-    if (close) {
-
-      const toNumber = (timeStr: string) => +timeStr.split(':').join('');
-      const timeConverterFn = (timeStr) => {
-  
-        const timeParts = timeStr.split(':');
-        
-        return `${ +timeParts[0] % 12 || 12 }${ +timeParts[1] == 0 ? ' ' : `:${timeParts[1]} ` }${ +timeParts[0] < 12 ? 'AM' : 'PM' }`
-  
-      };
-
-      const openTimeNum = toNumber(open);
-      const closeTimeNum = toNumber(close);
-      const currentTimeNum = +`${date.getHours()}${('0' + date.getMinutes()).slice(-2)}`;
-      const closedResult = { message: this.messService.getMessage(`closed_${APP_MENU_PAGE}`, timeConverterFn(open)), isClosed: true };
-      const openResult = { message: this.messService.getMessage(`open_${APP_MENU_PAGE}`, timeConverterFn(close)), isClosed: false };
-  
-      if (closeTimeNum < openTimeNum) {
-  
-        if (currentTimeNum < openTimeNum && currentTimeNum >= closeTimeNum) {
-  
-          return closedResult;
-  
-        }
-  
-        return openResult;
-  
-      }
-  
-      
-  
-      if (currentTimeNum >= openTimeNum && currentTimeNum < closeTimeNum) {
-  
-        return openResult;
-  
-      }
-  
-      return closedResult;
-  
-    }
-  
-    return { message: this.messService.getMessage(`open24_7_${APP_MENU_PAGE}`, open), isClosed: false };
-
   }
 
   private get _tabbarHeight() {

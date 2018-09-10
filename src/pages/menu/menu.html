@@ -32,25 +32,18 @@
       </div>
       <div>
         <ion-note>
-          <span>{{ workingTime }}</span>
+          <span>{{ availabilyService.checkAvailability(RestaurantData.workingTime).message }}</span>
         </ion-note>
       </div>
     </div>
     <div class="list-wrapper" [style.height.px]="listWrapperHeight">
 
-      <!-- <div *ngIf="ShopMenu === undefined" margin-top class="spinner-grid">
-        <ion-spinner color="primary"></ion-spinner>
-      </div> -->
       <extras-offline *ngIf="!networkService.isOnline; else OnlineContent"></extras-offline>
+
       <ng-template #OnlineContent>
         <ng-container [ngSwitch]="currentState">
 
           <extras-empty-response [message]="messService.getMessage('noContent_MenuPage')" *ngSwitchCase="States.ResponseEmpty"></extras-empty-response>
-          <!-- <div *ngSwitchCase="States.ResponseEmpty" class="no-content-notice">
-            <h3 ion-text color="danger">
-              No menus for this item here yet...
-            </h3>
-          </div> -->
       
           <div *ngSwitchCase="States.RequestSent" margin-top class="spinner-grid">
             <ion-spinner color="primary"></ion-spinner>
@@ -87,7 +80,7 @@
                 </ion-col>
               </ion-row>
 
-              <button class="btn-addToCart" [disabled]="!isCanOrder" ion-button clear item-end icon-left>Add
+              <button class="btn-addToCart" [disabled]="RestaurantData.takeaway && availabilyService.checkAvailability(RestaurantData.workingTime).isClosed" ion-button clear item-end icon-left>Add
                 <span>&nbsp;</span>
                 <ion-icon name="cart"></ion-icon>
               </button>
@@ -95,11 +88,6 @@
           </ion-list>
         </ng-container>
       </ng-template>
-      <!-- <div *ngIf="ShopMenu === null" class="no-content-notice">
-        <h3 ion-text color="danger">
-          No menus for this item here yet...
-        </h3>
-      </div> -->
 
     </div>
   </div>

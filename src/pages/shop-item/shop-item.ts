@@ -1,8 +1,8 @@
 import { Component } from "@angular/core";
 import { IonicPage, NavParams, NavController } from "ionic-angular";
 import { IMG_DATA_FIELD_TOKEN, ANGULAR_ANIMATION_OPACITY, APP_CART_PAGE, MAX_CART_ITEMS } from "../pages.constants";
-import { ShoppingCartService, MessangingService, ToastMessangerService } from "../../services";
-import { IOrder, IMenuItem } from "../../interfaces";
+import { ShoppingCartService, MessangingService, ToastMessangerService, AvailabilityService } from "../../services";
+import { IOrder, IMenuItem, IRestaurants } from "../../interfaces";
 
 
 class ItemPageCache {
@@ -10,7 +10,7 @@ class ItemPageCache {
   unitCount = 0;
   unitNotes: string;
   unitEntity: any;
-  isClosed: boolean;
+  restaurantLink: IRestaurants;
 
   MAX_LIMIT = MAX_CART_ITEMS;
 
@@ -28,31 +28,42 @@ export class ShopItemPage extends ItemPageCache {
 
   requestFromCartPage: boolean;
   Order: IOrder | IMenuItem;
-  backgroundImage: string;
+  //backgroundImage: string;
 
   private _isActionBtnClicked: boolean;
   private _isUnitSaved: boolean;
 
   constructor(
-    readonly shoppingCartService: ShoppingCartService,
     private readonly _navCtrl: NavController,
     private readonly _toastService: ToastMessangerService,
     private readonly _messService: MessangingService,
-    private readonly _navParams: NavParams) {
+    private readonly _navParams: NavParams,
+    readonly availabilityService: AvailabilityService,
+    readonly shoppingCartService: ShoppingCartService) {
 
     super();
-    
+
     this.requestFromCartPage = this._navCtrl.getViews().slice(-1)[0].name === APP_CART_PAGE;
 
     this.Order = this._navParams.data;
-    this.isClosed = (<IOrder>this.Order).isClosed;
-    this.unitNotes = this.requestFromCartPage
-      ? (<IMenuItem>this.Order).userNotes
-      : (<IOrder>this.Order).menu.userNotes;
+
+    if (this.requestFromCartPage) {
+
+      this.unitNotes = (<IMenuItem>this.Order).userNotes;
+
+    } else {
+
+      this.unitNotes = (<IOrder>this.Order).menu.userNotes;
+      this.restaurantLink = (<IOrder>this.Order).resourceLink;
+    }
 
     this.unitEntity = (<IOrder>this.Order).menu || this.Order as IMenuItem;
 
-    this.backgroundImage = `url(${this.Order[IMG_DATA_FIELD_TOKEN] || (<IOrder>this.Order).menu.item[IMG_DATA_FIELD_TOKEN]})`;
+  }
+
+  get backgroundImage() {
+
+    return `url(${this.Order[IMG_DATA_FIELD_TOKEN] || (<IOrder>this.Order).menu.item[IMG_DATA_FIELD_TOKEN]})`;
 
   }
 
@@ -65,7 +76,9 @@ export class ShopItemPage extends ItemPageCache {
     if (!this.requestFromCartPage) {
 
       this.shoppingCartService.addToCart(this.Order as IOrder)
-                                .then(_ => delete this._isActionBtnClicked);
+        .then(_ => delete this._isActionBtnClicked);
+
+      this.ionViewWillEnter();
 
     } else {
 
@@ -117,6 +130,20 @@ export class ShopItemPage extends ItemPageCache {
       }
 
       this.unitEntity.quantity--;
+
+    }
+
+  }
+
+  ionViewWillEnter() {
+
+    if (!this.requestFromCartPage) {
+
+      const { TOTAL_ORDERS_IN_CART } = this.shoppingCartService.CART_OBJECT_DB;
+      const { quantity } = this.unitEntity;
+      const diff = MAX_CART_ITEMS - TOTAL_ORDERS_IN_CART;
+      
+      this.unitEntity.quantity = quantity > diff ? diff : (quantity || (TOTAL_ORDERS_IN_CART == MAX_CART_ITEMS ? 0 : 1));
 
     }
 

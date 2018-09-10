@@ -8,7 +8,7 @@ import { from, Observable, of } from "rxjs";
 import { filter, pluck, shareReplay, switchMap, tap } from "rxjs/operators";
 import { asap } from "rxjs/Scheduler/asap";
 import { FormUserTemplateData, IAuthUserPayload, IProfileUserData, IQuickOrder } from "../interfaces";
-import { FORM_USER_TEMPLATE_DATA_TOKEN, ERROR_CLASS_NAME, FIREBASE_DB_TOKENS, DATA_STORE_CURRENT_ORDERS_TOKEN } from "../pages/pages.constants";
+import { ERROR_CLASS_NAME, FIREBASE_DB_TOKENS, DATA_STORE_CURRENT_ORDERS_TOKEN, FORM_USER_TEMPLATE_DATA } from "../pages/pages.constants";
 import { AlertUIValidatorService } from "./alert-validator.service";
 import { ShoppingCartService } from "./shopping-cart.service";
 import { NetworkService } from "./network.service";
@@ -46,7 +46,7 @@ export class AuthService {
     private readonly _shoppingCartService: ShoppingCartService,
     private readonly _networkService: NetworkService,
     @Inject(DATA_STORE_CURRENT_ORDERS_TOKEN) private readonly _dataStorageCurrentOrders: StateDataStoreEntity<IQuickOrder>,
-    @Inject(FORM_USER_TEMPLATE_DATA_TOKEN) private _formTemplateData: FormUserTemplateData) {
+    @Inject(FORM_USER_TEMPLATE_DATA) private _formTemplateData: FormUserTemplateData) {
 
       this._setupUserProfileData();
 

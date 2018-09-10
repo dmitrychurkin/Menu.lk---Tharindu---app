@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { Storage } from "@ionic/storage";
-import { Events, ToastOptions } from "ionic-angular";
+import { Events, ToastOptions, Platform } from "ionic-angular";
 import { Cart, IEntityInCart, IMenuItem, IMenuType, IOrder, CurrencyType } from "../interfaces";
 import { APP_EV, CART_ACTION_FLAGS, DATABASE_TOKENS, MAX_CART_ITEMS, SOUND_MAPPER } from "../pages/pages.constants";
 import { ToastMessangerService } from "./toast-messanger.service";
@@ -9,19 +9,32 @@ import { MessangingService } from "./messaging-registry.service";
 
 const { ADD_TO_CART, REMOVE_FROM_CART } = SOUND_MAPPER;
 
+const CartModel = { TOTAL_ORDERS_IN_CART: 0, TOTAL_COST: 0, CART: [] };
+
 @Injectable()
 export class ShoppingCartService {
 
-  CART_OBJECT_DB: Cart;
+  CART_OBJECT_DB: Cart = CartModel;
   cartReady: Promise<Cart>;
 
   constructor(
     private readonly _events: Events,
     private readonly _storage: Storage,
     private readonly _messService: MessangingService,
+    private readonly _platform: Platform,
     private readonly _toastMessanger: ToastMessangerService) {
 
-      this.cartReady = this._cart.then((CartEntity: Cart) => this.CART_OBJECT_DB = CartEntity);
+      this.cartReady = this._cart.then((CartEntity: Cart) => {
+
+        if (CartEntity && Array.isArray(CartEntity.CART) && typeof CartEntity.TOTAL_ORDERS_IN_CART === 'number' && typeof CartEntity.TOTAL_COST === 'number') {
+          
+          this.CART_OBJECT_DB = CartEntity;
+        
+        }
+        
+        return this.CART_OBJECT_DB;
+
+      });
 
     }
 
@@ -100,13 +113,12 @@ export class ShoppingCartService {
 
   addToCart(Order: IOrder): Promise<any> {
 
-    //try {
+    try {
       
       const { TOTAL_ORDERS_IN_CART, CART } = this.CART_OBJECT_DB;
 
-      if (TOTAL_ORDERS_IN_CART + Order.menu.quantity > MAX_CART_ITEMS) {
+      if (!Order.menu.quantity || TOTAL_ORDERS_IN_CART + Order.menu.quantity > MAX_CART_ITEMS) {
 
-        //throw new Error( this._messService.getMessage(`tooManyOrders_${ShoppingCartService.name}`) );
         return this.toastMessageHandler( this._messService.getMessage(`tooManyOrders_${ShoppingCartService.name}`) );
 
       }
@@ -192,16 +204,16 @@ export class ShoppingCartService {
         totalCost: Order.menu.item.price * Order.menu.quantity
       });
 
-    //} catch (err) {
+    } catch (err) {
       // Handling all errors here :)
-      // return this.toastMessageHandler(`${ (err && err.message) || this._messService.getMessage(`${CART_ACTION_FLAGS.ADD}Error_${ShoppingCartService.name}`) }` /*`${(err && err.message) || 'Error occured while trying to add to cart'}`*/);
+      return this.toastMessageHandler(`${ this._platform.is('cordova') ? this._messService.getMessage(`${CART_ACTION_FLAGS.ADD}Error_${ShoppingCartService.name}`) : (err && err.message) }` );
 
-    //}
+    }
 
   }
 
   
-  async removeFromCart(IMenuItem: IMenuItem, isPageWillLeave: boolean, flag?: 'clear'/*IMenuItemToDeleteArray?: Array<IMenuItem>, removeIndex?: number*/): Promise<any> {
+  async removeFromCart(IMenuItem: IMenuItem, isPageWillLeave: boolean, flag?: 'clear'): Promise<any> {
     
     try {
 
@@ -250,9 +262,9 @@ export class ShoppingCartService {
         totalCost: totalPrice
       });
 
-    }catch(e) {
+    }catch(err) {
 
-      return this.toastMessageHandler(`${ (e && e.message) || this._messService.getMessage(`${CART_ACTION_FLAGS.DELETE}Error_${ShoppingCartService.name}`) }` /*`${(e && e.message) || 'Error occured while trying to remove from cart'}`*/);
+      return this.toastMessageHandler(`${ this._platform.is('cordova') ? this._messService.getMessage(`${CART_ACTION_FLAGS.DELETE}Error_${ShoppingCartService.name}`) : (err && err.message) }` );
 
     }
 
@@ -302,7 +314,7 @@ export class ShoppingCartService {
 
     } catch (err) {
 
-      return this.toastMessageHandler(`${ (err && err.message) || this._messService.getMessage('appError') }`/*`${(err && err.message) || 'Error occured'}`*/);
+      return this.toastMessageHandler(`${ this._platform.is('cordova') ? this._messService.getMessage('appError') : (err && err.message) }` );
 
     }
 
@@ -315,13 +327,16 @@ export class ShoppingCartService {
       let toastOpts: ToastOptions;
 
       if (typeof errMessageOrOptions === 'string') {
+
         toastOpts = { message: errMessageOrOptions };
+
       }else if (typeof errMessageOrOptions === 'object') {
+
         toastOpts = errMessageOrOptions;
+
       }
 
-      return this._toastMessanger
-                .showToast(toastOpts);
+      return this._toastMessanger.showToast(toastOpts);
 
     }
 
@@ -331,19 +346,7 @@ export class ShoppingCartService {
 
   private get _cart(): Promise<Cart> {
 
-    return this._storage
-      .get(DATABASE_TOKENS.SHOPPING_CART)
-      .then((CartEntity: Cart) => {
-
-        if (!CartEntity || !Array.isArray(CartEntity.CART) || typeof CartEntity.TOTAL_ORDERS_IN_CART !== 'number' || typeof CartEntity.TOTAL_COST !== 'number') {
-
-          CartEntity = { TOTAL_ORDERS_IN_CART: 0, TOTAL_COST: 0, CART: [] };
-
-        }
-
-        return CartEntity;
-
-      })
+    return this._storage.get(DATABASE_TOKENS.SHOPPING_CART);
 
   }
 

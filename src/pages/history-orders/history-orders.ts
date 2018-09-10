@@ -4,7 +4,7 @@ import { CollectionReference, DocumentSnapshot, Timestamp } from "@firebase/fire
 import { AngularFirestore } from "angularfire2/firestore";
 import { ActionSheetController, IonicPage, ModalController } from "ionic-angular";
 import { Cart, IHistoryModalTransferState, IQuickOrder } from "../../interfaces";
-import { AuthService, IFetcherArgs, OrdersManagerService, RootDataReceiverService, MessangingService } from "../../services";
+import { AuthService, IFetcherArgs, OrdersManagerService, RootDataReceiverService } from "../../services";
 import { StateDataStoreEntity } from "../data-state-store.class";
 import { PageBaseClass } from "../page-base.class";
 import { APP_CART_PAGE, FIREBASE_DB_TOKENS, OrderStatus, OrderManagmentActionFlag, DATA_STORE_CURRENT_ORDERS_TOKEN } from '../pages.constants';
@@ -67,9 +67,8 @@ export class HistoryOrdersPage extends PageBaseClass<SegmentOptions, IQuickOrder
     private readonly _afDb: AngularFirestore,
     private readonly _rootDataReceiverService: RootDataReceiverService<Cart>,
     private readonly _ordersManagerService: OrdersManagerService,
-    readonly messService: MessangingService,
     @Inject(DATA_STORE_CURRENT_ORDERS_TOKEN) private readonly _currentOrdersStore: StateDataStoreEntity<IQuickOrder>,
-    injector: Injector) {
+                     injector: Injector) {
 
     super(injector);
     
@@ -157,7 +156,7 @@ export class HistoryOrdersPage extends PageBaseClass<SegmentOptions, IQuickOrder
           icon: 'bookmark'
         },
         {
-          text: 'PRO TIP! Tap on order card to view an order content',
+          text: this.messService.getMessage(`actionSheetHint_${HistoryOrdersPage.name}`),
           icon: 'bulb'
         }
       ]

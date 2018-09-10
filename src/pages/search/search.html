@@ -11,11 +11,11 @@
   <ion-searchbar [animated]="true" [showCancelButton]="true" (ionInput)="onInput($event)" (ionCancel)="ionViewWillEnter()" [(ngModel)]="model"
     placeholder="Type name of restaurant..."></ion-searchbar>
 
-  <ion-note *ngIf="!networkService.isOnline; else OnlineContent" padding>You are offline</ion-note>
+  <ion-note *ngIf="!networkService.isOnline; else OnlineContent" padding>{{ messService.getMessage('offline_NetworkService') }}</ion-note>
   <ng-template #OnlineContent>
     <ng-container [ngSwitch]="currentState">
 
-      <ion-note *ngSwitchCase="States.ResponseEmpty" padding>No items found ):</ion-note>
+      <ion-note *ngSwitchCase="States.ResponseEmpty" padding>{{ messService.getMessage(States.ResponseEmpty + '_SearchPage') }}</ion-note>
 
       <div margin-top class="spinner-pane" *ngSwitchCase="States.RequestSent">
         <ion-spinner color="primary"></ion-spinner>

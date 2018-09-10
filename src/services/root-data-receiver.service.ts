@@ -7,6 +7,7 @@ import { map, reduce, share, skip, switchMap, take, tap } from 'rxjs/operators';
 import { DataWithId, IStateDataStoreEntity } from '../pages/data-state-store.class';
 import { ToastMessangerService } from './toast-messanger.service';
 import { MessangingService } from './messaging-registry.service';
+import { Platform } from 'ionic-angular';
 
 
 @Injectable()
@@ -14,7 +15,7 @@ export class RootDataReceiverService<T> {
 
   private _isServiceUsed = false;
 
-  private readonly _defaultErrorHandler = (/*err: Error*/) => this._toastMessService.showToast({ message: /*err.message ||*/ this._messService.getMessage('appError') });
+  private readonly _defaultErrorHandler = (err: Error) => this._toastMessService.showToast({ message: this._platform.is('cordova') ? this._messService.getMessage('appError') : (err && err.message) });
   private readonly _observer: any = {
     error: this._defaultErrorHandler
   };
@@ -22,6 +23,7 @@ export class RootDataReceiverService<T> {
   constructor(
     private readonly _afDb: AngularFirestore,
     private readonly _messService: MessangingService,
+    private readonly _platform: Platform,
     private readonly _toastMessService: ToastMessangerService) {}
 
   decodeDataSnapshot(doc: QueryDocumentSnapshot<T>): DataWithId<T> {

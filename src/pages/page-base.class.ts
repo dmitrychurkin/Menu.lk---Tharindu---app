@@ -164,7 +164,7 @@ export class PageBaseClass<S extends SegmentOptions<string>, T> {
     
     if (!this.dataStore.itemCollection.length && !this.dataStore.isInfinityScrollSuspended) {
       
-      const actionsCb = this.actionFetchDone(scrollerFn);
+      const actionsCb = this.actionFetchDone(scrollerFn, null, false);
       const collectionObj = { collection: collection || this.currentSegmentValue };
       this._dataReceiverService.emitFetch({
         ...this._pageConfig, ...collectionObj, ...{
@@ -202,7 +202,7 @@ export class PageBaseClass<S extends SegmentOptions<string>, T> {
     this.isSegmentDisabled = true;
 
     asap.schedule(() => this.dataStore.subject$.next({
-      onQueryComplete: this.actionFetchDone(() => this.isSegmentDisabled = maybeSegmentDisabled, infinityScroll)
+      onQueryComplete: this.actionFetchDone(() => this.isSegmentDisabled = maybeSegmentDisabled, infinityScroll, false)
     }), this._pageConfig.mode === 'list' ? 1000 : 0);
 
   }

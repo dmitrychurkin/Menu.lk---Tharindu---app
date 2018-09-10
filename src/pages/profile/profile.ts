@@ -1,9 +1,9 @@
 import { Component, Inject } from '@angular/core';
 import { Events, IonicPage, Item, NavController, AlertController } from 'ionic-angular';
 import { FormUserTemplateData, IAuthUserPayload } from '../../interfaces';
-import { AuthService, AlertUIValidatorService, ToastMessangerService } from '../../services';
+import { AuthService, AlertUIValidatorService, ToastMessangerService, MessangingService } from '../../services';
 import { AnimationLifecicleSteps, AppTabsPage } from '../app-tabs/app-tabs';
-import { ANGULAR_ANIMATION_OPACITY, APP_EV, FORM_USER_TEMPLATE_DATA_TOKEN, ERROR_CLASS_NAME, FIREBASE_DB_TOKENS, FILE_UPLOAD_MAX_REQ } from '../pages.constants';
+import { ANGULAR_ANIMATION_OPACITY, APP_EV, ERROR_CLASS_NAME, FIREBASE_DB_TOKENS, FILE_UPLOAD_MAX_REQ, FORM_USER_TEMPLATE_DATA } from '../pages.constants';
 import { AngularFirestore } from 'angularfire2/firestore';
 import { firestore } from 'firebase/app';
 
@@ -31,16 +31,17 @@ export class ProfilePage {
  
   private _isActionBtnClicked: boolean;
   private _fileFieldErrorMessage: string;
-  private _equalityErrMessage = (subject: string) => `New ${subject} must be differ from old one`
+  private _equalityErrMessage = (subject: string) => this.messService.getMessage(`equalityError_${ProfilePage.name}`, subject);
 
   constructor(
-    @Inject(FORM_USER_TEMPLATE_DATA_TOKEN) readonly userTemplateData: FormUserTemplateData,
     private readonly _alertCtrl: AlertController,
     private readonly _navCtrl: NavController,
     private readonly _events: Events,
     private readonly _afDb: AngularFirestore,
     private readonly _toastMessService: ToastMessangerService,
-    readonly authService: AuthService) {
+    @Inject(FORM_USER_TEMPLATE_DATA) readonly userTemplateData: FormUserTemplateData,
+            readonly messService: MessangingService,
+            readonly authService: AuthService) {
 
     authService.user$.subscribe((authUserData: IAuthUserPayload) => this.AuthUserData = authUserData);
     
@@ -110,6 +111,7 @@ export class ProfilePage {
 
     const changeCredentialFlowHandler = (errorMessage?: string, errorClassName?: string) => {
       
+      const { name: profilePageName } = ProfilePage;
       const profileNameCustomValidator = (profile_name: string) => {
 
         if (typeof profile_name === 'string' && profile_name) {
@@ -220,8 +222,8 @@ export class ProfilePage {
                   delete this._isActionBtnClicked;
                   delete this._fileFieldErrorMessage;
                   const message = what === 'profile' && Array.isArray(userProfileOutput) && userProfileOutput.every(res => res === null) ? 
-                                          `In order to update profile You must specify new name or include avatar photo` 
-                                        : `Your ${what.toUpperCase()} has been successfully updated`;
+                                          this.messService.getMessage(`emptyUserProfileData_${profilePageName}`) 
+                                        : this.messService.getMessage(`userProfileUpdated_${profilePageName}`, what.toUpperCase());
                   this._toastMessService.showToast({ message });
                   
                 })
@@ -246,7 +248,7 @@ export class ProfilePage {
               let reader = new FileReader();
               const { files } = event.target;
               reader.onload = (readerEvent: any) => {
-                  console.log('reader.onload ', readerEvent, files);
+                  
                   delete this._fileFieldErrorMessage;
                   this._alertUIValidatorService.clearPreviousErrors();
 
@@ -254,14 +256,14 @@ export class ProfilePage {
                   const { size, type } = files[0];
                   if (SIZE < size) {
                     
-                    this._fileFieldErrorMessage = `File size must be less than ${SIZE / 1000} Kb. Current size is ${(size / 1000).toFixed(0)} Kb`;
+                    this._fileFieldErrorMessage = this.messService.getMessage(`fileExeedError_${profilePageName}`, SIZE / 1000, (size / 1000).toFixed(0));
 
                   }
                   
 
                   if (MIME_TYPE_ARR.indexOf(type) == -1) { 
                     
-                    this._fileFieldErrorMessage += '<br>Incorrect file type, must to be JPG or PNG!';
+                    this._fileFieldErrorMessage += '<br>' + this.messService.getMessage(`wrongMime_${profilePageName}`);
 
                   }
 
@@ -320,7 +322,8 @@ export class ProfilePage {
   }
 
   onFieldSelect({ target }: any, button: Item, index: number) {
-
+    
+    const { name: profilePageName } = ProfilePage;
     const btnElem = target.closest('.js-field-control');
 
     if (btnElem) {
@@ -378,7 +381,7 @@ export class ProfilePage {
                     .catch(_ => isError = true)
                     .then(_ => {
                       delete this._isActionBtnClicked;
-                      this._toastMessService.showToast({ message: isError ? `Error occured, try again` : `Your ${subject} has been updated` });
+                      this._toastMessService.showToast({ message: isError ? this.messService.getMessage('appError') : this.messService.getMessage(`userProfileDataUpdated_${profilePageName}`, subject) });
                     });
 
                 }

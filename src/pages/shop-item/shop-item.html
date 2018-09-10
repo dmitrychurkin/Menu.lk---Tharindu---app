@@ -28,14 +28,26 @@
       
         <div class="btn-group">
           <div class="btn-wrapper">
-            <button [disabled]="!requestFromCartPage && shoppingCartService.CART_OBJECT_DB?.TOTAL_ORDERS_IN_CART == MAX_LIMIT" ion-button (tap)="onDec()">-</button>
-            <p class="btn-group-counter">{{ unitEntity.quantity }}</p>
-            <button [disabled]="!requestFromCartPage && shoppingCartService.CART_OBJECT_DB?.TOTAL_ORDERS_IN_CART == MAX_LIMIT" ion-button (tap)="onInc()">+</button>
+            <button 
+              [disabled]="!requestFromCartPage && (availabilityService.checkAvailability(restaurantLink.workingTime).isClosed || shoppingCartService.CART_OBJECT_DB.TOTAL_ORDERS_IN_CART == MAX_LIMIT)" 
+              ion-button 
+              (tap)="onDec()">-</button>
+            <p class="btn-group-counter">{{ !requestFromCartPage && availabilityService.checkAvailability(restaurantLink.workingTime).isClosed ? 0 : unitEntity.quantity }}</p>
+            <button 
+              [disabled]="!requestFromCartPage && (availabilityService.checkAvailability(restaurantLink.workingTime).isClosed || shoppingCartService.CART_OBJECT_DB.TOTAL_ORDERS_IN_CART == MAX_LIMIT)" 
+              ion-button 
+              (tap)="onInc()">+</button>
           </div>
         </div>
 
         <div class="add-to-cart">
-          <button [disabled]="isClosed || (!requestFromCartPage && shoppingCartService.CART_OBJECT_DB?.TOTAL_ORDERS_IN_CART == MAX_LIMIT)" (tap)="onAction()" ion-button [color]="requestFromCartPage ? 'danger' : 'secondary'" round icon-left>{{ requestFromCartPage ? 'Save changes' : (isClosed ? 'Closed' : 'Add to Cart') }}<span>&nbsp;</span><ion-icon name="cart"></ion-icon></button>
+          <button 
+            [disabled]="!requestFromCartPage && (availabilityService.checkAvailability(restaurantLink.workingTime).isClosed || shoppingCartService.CART_OBJECT_DB.TOTAL_ORDERS_IN_CART == MAX_LIMIT)" 
+            (tap)="onAction()" 
+            ion-button 
+            [color]="requestFromCartPage ? 'danger' : 'secondary'" 
+            round 
+            icon-left>{{ requestFromCartPage ? 'Save changes' : (availabilityService.checkAvailability(restaurantLink.workingTime).isClosed ? 'Closed' : 'Add to Cart') }}<span>&nbsp;</span><ion-icon name="cart"></ion-icon></button>
         </div>
 
       </div>

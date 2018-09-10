@@ -2,6 +2,7 @@ import { trigger, state, style, transition, animate } from "@angular/animations"
 import { InjectionToken } from "../../node_modules/@angular/core";
 import { FormUserTemplateData, IQuickOrder } from "../interfaces";
 import { StateDataStoreEntity } from "./data-state-store.class";
+import { MessangingService } from "../services";
 
 export const APP_TABS_PAGE = 'AppTabsPage';
 export const APP_SEARCH_PAGE = 'SearchPage';
@@ -32,70 +33,72 @@ export const ANGULAR_ANIMATION_OPACITY = ($out= 'void', $triggerName= 'opacity')
     state('true', style({ opacity: 1 })),
     transition(`${$out} <=> true`, animate('.5s ease-in-out'))
   ]);
-export const FORM_USER_TEMPLATE_DATA_TOKEN = new InjectionToken('FORM_USER_DATA_FIELDS');
-export const FORM_USER_TEMPLATE_DATA: FormUserTemplateData = [
-  {
-    icon: 'person',
-    label: 'your name',
-    type: 'text',
-    control: 'name',
-    model: '',
-    mappedDbName: 'userName',
-    validators: {
-      required: true,
-      minlength: '3',
-      maxlength: '20'
+
+export function FORM_USER_TEMPLATE_DATA(messService: MessangingService) : FormUserTemplateData {
+  return [
+    {
+      icon: 'person',
+      label: messService.getMessage('FORM_USER_DATA_FIELDS_userName'),
+      type: 'text',
+      control: 'name',
+      model: '',
+      mappedDbName: 'userName',
+      validators: {
+        required: true,
+        minlength: '3',
+        maxlength: '20'
+      }
+    },
+    {
+      icon: 'call',
+      label: messService.getMessage('FORM_USER_DATA_FIELDS_userPhone'),
+      type: 'tel',
+      control: 'phone',
+      model: '',
+      mappedDbName: 'userPhone',
+      validators: {
+        required: true,
+        pattern: '^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$'
+      }
+    },
+    {
+      icon: 'mail',
+      label: messService.getMessage('FORM_USER_DATA_FIELDS_userEmail'),
+      type: 'email',
+      control: 'email',
+      model: '',
+      mappedDbName: 'userEmail',
+      validators: {
+        required: true,
+        pattern: '^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$',
+        maxlength: '50'
+      }
+    },
+    {
+      icon: 'pin',
+      label: messService.getMessage('FORM_USER_DATA_FIELDS_userAddress'),
+      type: 'text',
+      control: 'address',
+      model: '',
+      mappedDbName: 'userAddress',
+      validators: {
+        required: true,
+        minlength: '3',
+        maxlength: '50'
+      }
+    },
+    {
+      icon: 'alert',
+      label: messService.getMessage('FORM_USER_DATA_FIELDS_AI'),
+      control: 'notes',
+      type: null,
+      model: '',
+      validators: {
+        maxlength: '100'
+      }
     }
-  },
-  {
-    icon: 'call',
-    label: 'telephone no (example: +31636363634)',
-    type: 'tel',
-    control: 'phone',
-    model: '',
-    mappedDbName: 'userPhone',
-    validators: {
-      required: true,
-      pattern: '^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$'
-    }
-  },
-  {
-    icon: 'mail',
-    label: 'email',
-    type: 'email',
-    control: 'email',
-    model: '',
-    mappedDbName: 'userEmail',
-    validators: {
-      required: true,
-      pattern: '^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$',
-      maxlength: '50'
-    }
-  },
-  {
-    icon: 'pin',
-    label: 'address',
-    type: 'text',
-    control: 'address',
-    model: '',
-    mappedDbName: 'userAddress',
-    validators: {
-      required: true,
-      minlength: '3',
-      maxlength: '50'
-    }
-  },
-  {
-    icon: 'alert',
-    label: 'additional information',
-    control: 'notes',
-    type: null,
-    model: '',
-    validators: {
-      maxlength: '100'
-    }
-  }
-];
+  ];
+}
 
 export const ERROR_CLASS_NAME = 'error';
 

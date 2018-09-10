@@ -38,7 +38,7 @@
           </ion-list>
 
           <div class="btn-holder">
-            <button type="submit" class="btn-order-now" [disabled]="!form.valid || isQuickOrderSent" ion-button color="dark" outline round>order now</button>
+            <button type="submit" class="btn-order-now" [disabled]="!form.valid || selfRef.isQuickOrderSent" ion-button color="dark" outline round>order now</button>
           </div>
         </form>
       </ion-col>

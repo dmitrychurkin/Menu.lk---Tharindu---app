@@ -1,12 +1,13 @@
 import { AfterViewChecked, Component, Injector, QueryList, ViewChild, ViewChildren } from "@angular/core";
 import { Checkbox, Events, IonicPage, NavController, NavParams, PopoverController, ViewController, List } from "ionic-angular";
-import { asap } from "rxjs/Scheduler/asap";
 import { Cart, IHistoryModalTransferState, IMenuItem } from "../../interfaces";
 import { ShoppingCartService, OrdersManagerService } from "../../services";
 import { APP_EV, APP_QUICK_ORDER_PAGE, APP_SHOP_ITEM_PAGE, Currency, OrderManagmentActionFlag, OrderStatus, PopoverCartMenuEventFlags, FIREBASE_DB_TOKENS } from "../pages.constants";
 import { PopoverCartMenu } from "../popover-cart-menu/popover-cart-menu";
 import CartBaseClass, { IPropsForCalcBtnPosition } from './cart-base.class';
 import { AngularFirestore } from "angularfire2/firestore";
+import { asap } from "rxjs/Scheduler/asap";
+import { QuickOrder } from "../quick-order/quick-order";
 
 
 const { ORDERS } = FIREBASE_DB_TOKENS;
@@ -33,6 +34,8 @@ export class CartPage extends CartBaseClass implements AfterViewChecked {
 
   OrderStatus = OrderStatus;
   OrderManagmentActionFlag = OrderManagmentActionFlag;
+
+  QuickOrderPageRef = QuickOrder;
 
   mode: 'modal' | 'normal';
   orderId: string;
@@ -111,7 +114,7 @@ export class CartPage extends CartBaseClass implements AfterViewChecked {
 
   onViewOrder(Item: IMenuItem) {
    
-    if (this._isShopItemPageActivated || this.mode === 'modal') return;
+    if (this._isShopItemPageActivated || this.mode === 'modal' || QuickOrder.isQuickOrderSent) return;
 
     this._isShopItemPageActivated = true;
 
@@ -220,7 +223,7 @@ export class CartPage extends CartBaseClass implements AfterViewChecked {
 
   presentPopover($event: any) {
     
-    if (this.animator.isLocked || !this.shoppingCartService.CART_OBJECT_DB.TOTAL_ORDERS_IN_CART) return;
+    if (this.animator.isLocked || !this.shoppingCartService.CART_OBJECT_DB.TOTAL_ORDERS_IN_CART || QuickOrder.isQuickOrderSent) return;
 
     this._popoverCtrl.create('PopoverCartMenu')
       .present({ ev: $event });
@@ -267,7 +270,9 @@ export class CartPage extends CartBaseClass implements AfterViewChecked {
     
     this._events.unsubscribe(APP_EV.DELETE_CART_MODE, this._deleteModeFnCallback);
     this.ionViewWillEnter();
-    
+
+    QuickOrder.isQuickOrderSent = false;
+
   }
 
 }

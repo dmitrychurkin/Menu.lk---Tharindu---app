@@ -19,12 +19,14 @@ export class ToastMessangerService {
 
     const offset = this._notificationPool.indexOf(config.message);
 
-    if (!config.message || (this._notificationPool.length && offset >= 0)) return Promise.resolve();
+    if (!config.message || offset >= 0) return Promise.resolve();
   
     this._notificationPool.push(config.message);
 
     const toast = this.toastCtrl.create({ ...this._defaultCfg, ...config });
-    toast.onDidDismiss(_ => this._notificationPool.splice(offset, 1));
+    toast.onDidDismiss(_ => 
+      this._notificationPool.splice(this._notificationPool.indexOf(config.message), 1)
+    );
 
     return toast.present();
 

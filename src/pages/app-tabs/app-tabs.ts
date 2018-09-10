@@ -2,15 +2,17 @@ import { animate, AnimationBuilder, state, style, transition, trigger } from '@a
 import { AfterViewChecked, Component, ElementRef, Inject, ViewChild } from '@angular/core';
 import { CollectionReference, DocumentChangeAction } from 'angularfire2/firestore';
 import { User } from 'firebase';
-import { Events, IonicPage, Tabs } from 'ionic-angular';
+import { Events, IonicPage, Tabs, Platform } from 'ionic-angular';
 import { distinctUntilChanged, pluck } from 'rxjs/operators';
 import { Subscription } from 'rxjs/Subscription';
 import { ISignInMeta, LoginWidgetComponent } from '../../components';
 import { IQuickOrder } from '../../interfaces';
-import { AuthService, OrdersNotificatorService, Providers, RootDataReceiverService, ToastMessangerService, IPWDSignInFlowHandlers } from '../../services';
+import { AuthService, OrdersNotificatorService, Providers, RootDataReceiverService, ToastMessangerService, IPWDSignInFlowHandlers, MessangingService } from '../../services';
 import { StateDataStoreEntity } from '../data-state-store.class';
-import { APP_EV, APP_HOME_PAGE, APP_PROFILE_PAGE, APP_SEARCH_PAGE, DATA_STORE_CURRENT_ORDERS_TOKEN, OrderStatus } from '../pages.constants';
+import { APP_EV, APP_HOME_PAGE, APP_PROFILE_PAGE, APP_SEARCH_PAGE, DATA_STORE_CURRENT_ORDERS_TOKEN, OrderStatus, FIREBASE_DB_TOKENS } from '../pages.constants';
 import AppTabsAnimations from './app-tabs.animation';
+
+const { ORDERS } = FIREBASE_DB_TOKENS;
 
 export enum AnimationLifecicleSteps {
   SHOW_PRELOADER = 0,
@@ -56,13 +58,16 @@ export class AppTabsPage implements AfterViewChecked {
   private _sub: Subscription;
   private _flag: Providers;
 
-  constructor(readonly authProvider: AuthService,
-    readonly toastMessanger: ToastMessangerService,
-    readonly events: Events,
+  constructor(
     @Inject(DATA_STORE_CURRENT_ORDERS_TOKEN) private readonly _dataStorageCurrentOrders: StateDataStoreEntity<IQuickOrder>,
     private readonly _rootDataReceiverService: RootDataReceiverService<IQuickOrder>,
     private readonly _ordersNotificatorService: OrdersNotificatorService,
-    animationBuilder: AnimationBuilder) {
+    private readonly _messService: MessangingService,
+    private readonly _platform: Platform,
+            readonly authProvider: AuthService,
+            readonly toastMessanger: ToastMessangerService,
+            readonly events: Events,
+                     animationBuilder: AnimationBuilder) {
     this.componentAnimations = new AppTabsAnimations(animationBuilder);
   }
 
@@ -165,7 +170,7 @@ export class AppTabsPage implements AfterViewChecked {
 
             const { uid, isAnonymous } = user;
             this._rootDataReceiverService.emitFetch({
-              collection: 'orders',
+              collection: ORDERS,
               mode: 'list',
               resourceObject: this._dataStorageCurrentOrders,
               queryFn: (ref: CollectionReference) => ref.where('uid', '==', uid).where('orderStatus', '<', OrderStatus.DONE),
@@ -181,8 +186,8 @@ export class AppTabsPage implements AfterViewChecked {
           this.animationSteps = AnimationLifecicleSteps.ENTER_LOGIN_TRANSITION;
 
         },
-        error: _ => {
-          this.toastMessanger.showToast({ message: 'Error occured, try again', showCloseButton: true });
+        error: (err: Error) => {
+          this.toastMessanger.showToast({ message: this._platform.is('cordova') ? this._messService.getMessage('appError') : (err && err.message) });
           this.animationSteps = AnimationLifecicleSteps.ENTER_LOGIN_TRANSITION;
         }
       });

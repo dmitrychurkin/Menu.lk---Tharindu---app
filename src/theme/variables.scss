@@ -132,10 +132,6 @@ $segment-button-md-border-color-activated: #fff;
       transition: inherit;
       opacity: 0;
     }
-
-    /*&.error {
-      color: $font-visible;
-    }*/
     
     &.ready {
       color: $font-transparent;
@@ -175,24 +171,6 @@ $segment-button-md-border-color-activated: #fff;
   }
 }
 
-// @mixin ion-img {
-//   ion-img {
-//     width: 100%;
-//     height: 17rem;
-    
-//     &.img-unloaded img, &.img-loaded img {
-//       display: block;
-//       transition: .5s;
-//     }
-//     &.img-unloaded img {
-//       opacity: 0;
-//     }
-//     &.img-loaded img {
-//       opacity: 1;
-//     }
-//   }
-// }
-
 @mixin create-flex-grid($align-items: center, $justify-content: center) {
   display: flex;
   align-items: $align-items;
@@ -205,20 +183,3 @@ $segment-button-md-border-color-activated: #fff;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
-/*@mixin alert-helper($alert-message: true, $error-message: true) {
-  
-  ion-alert.error {
-    @if $alert-message {
-      .alert-message {
-        color: color($colors, danger);
-      }
-    }
-
-    @if $error-message {
-      .error-message {
-        color: color($colors, danger);
-      }
-    }
-  }
-}*/
