@@ -164,7 +164,7 @@ export class PageBaseClass<S extends SegmentOptions<string>, T> {
     
     if (!this.dataStore.itemCollection.length && !this.dataStore.isInfinityScrollSuspended) {
       
-      const actionsCb = this.actionFetchDone(scrollerFn, null, false);
+      const actionsCb = this.actionFetchDone(scrollerFn);
       const collectionObj = { collection: collection || this.currentSegmentValue };
       this._dataReceiverService.emitFetch({
         ...this._pageConfig, ...collectionObj, ...{
