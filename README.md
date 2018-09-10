@@ -86,4 +86,25 @@ with
 ```javascript
   var pathToManifest = path.join(cordovaContext.opts.projectRoot, 'platforms', 'android', 'app', 'src', 'main', 'AndroidManifest.xml');
 ```
+
+
+### Requirements   
+- Java 8   
+- Android Studio 3.0 >=   
+- Android Tools (installed together with Android Studio)   
+- Gragle 3.0 >=   
+- NodeJS 6.0 >=   
+- Ionic framework 3.20.0   
+
+
+### Install instructions:   
+* `npm i`   
+* fix issues in 3 places as mentioned above   
+* connect your Android device   
+* `ionic cordova run android --device`   
+
+
+#### I attached already compiled APK file in folder buildAPK in case if you want just test my app   
+
+
 ### TODO: transfer all inline string messages from any modules into dedicated "messaging-registry.service"

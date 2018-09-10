@@ -145,11 +145,13 @@ export class PageBaseClass<S extends SegmentOptions<string>, T> {
 
     if (!this.content) return;
 
+    let segmentActived = true;
     this.dataStore.scrollPosition = this.content.scrollTop;
     this.currentSegmentValue = segment.value as S;
     const maybeSegmentDisabled = this.isSegmentDisabled;
     const scrollerFn = () => {
 
+      if (!segmentActived) return;
       if (!this.dataStore.scrollPosition) {
 
         this.isSegmentDisabled = maybeSegmentDisabled;
@@ -157,6 +159,8 @@ export class PageBaseClass<S extends SegmentOptions<string>, T> {
       }
 
       this.content.scrollTo(0, this.dataStore.scrollPosition, 300).then(() => asap.schedule(() => this.isSegmentDisabled = maybeSegmentDisabled, 100));
+
+      segmentActived = false;
 
     };
 
