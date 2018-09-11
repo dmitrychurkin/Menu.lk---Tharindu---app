@@ -264,6 +264,8 @@ export class CartPage extends CartBaseClass implements AfterViewChecked {
     this._sub && this._sub.unsubscribe();
     this._sub = undefined;
 
+    this._events.publish(APP_EV.CART_PAGE_WILL_LEAVE);
+    
   }
 
   ionViewWillUnload() {

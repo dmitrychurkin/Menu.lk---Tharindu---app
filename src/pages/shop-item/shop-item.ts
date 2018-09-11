@@ -29,7 +29,7 @@ export class ShopItemPage extends ItemPageCache {
   requestFromCartPage: boolean;
   Order: IOrder | IMenuItem;
   
-  private readonly _eventListener = (result: boolean) => {
+  private readonly _ordersTriggerListener = (result: boolean) => {
 
     this.isOrderSent = result;
 
@@ -40,10 +40,12 @@ export class ShopItemPage extends ItemPageCache {
     }
 
   };
+  private readonly _cartPageWillUnloadListener = () => this.ionViewWillEnter();
+
   isOrderSent: boolean;
   private _isActionBtnClicked: boolean;
   private _isUnitSaved: boolean;
-
+  
   constructor(
     private readonly _navCtrl: NavController,
     private readonly _toastService: ToastMessangerService,
@@ -54,8 +56,8 @@ export class ShopItemPage extends ItemPageCache {
             readonly shoppingCartService: ShoppingCartService) {
 
     super();
-
-    _events.subscribe(APP_EV.QUICK_ORDER_SENT, this._eventListener);
+    
+    _events.subscribe(APP_EV.QUICK_ORDER_SENT, this._ordersTriggerListener);
 
     this.requestFromCartPage = this._navCtrl.getViews().slice(-1)[0].name === APP_CART_PAGE;
 
@@ -69,6 +71,7 @@ export class ShopItemPage extends ItemPageCache {
 
       this.unitNotes = (<IOrder>this.Order).menu.userNotes;
       this.restaurantLink = (<IOrder>this.Order).resourceLink;
+      _events.subscribe(APP_EV.CART_PAGE_WILL_LEAVE, this._cartPageWillUnloadListener);
     }
 
     this.unitEntity = (<IOrder>this.Order).menu || this.Order as IMenuItem;
@@ -90,7 +93,7 @@ export class ShopItemPage extends ItemPageCache {
     if (!this.requestFromCartPage) {
 
       this.shoppingCartService.addToCart(this.Order as IOrder)
-        .then(_ => delete this._isActionBtnClicked);
+                              .then(_ => delete this._isActionBtnClicked);
 
       this.ionViewWillEnter();
 
@@ -150,7 +153,7 @@ export class ShopItemPage extends ItemPageCache {
   }
 
   ionViewWillEnter() {
-
+    
     if (!this.requestFromCartPage) {
 
       const { TOTAL_ORDERS_IN_CART } = this.shoppingCartService.CART_OBJECT_DB;
@@ -194,7 +197,13 @@ export class ShopItemPage extends ItemPageCache {
 
   ionViewWillUnload() {
 
-    this._events.unsubscribe(APP_EV.QUICK_ORDER_SENT, this._eventListener);
+    if (!this.requestFromCartPage) {
+
+      this._events.unsubscribe(APP_EV.CART_PAGE_WILL_LEAVE, this._cartPageWillUnloadListener);
+  
+    }
+    
+    this._events.unsubscribe(APP_EV.QUICK_ORDER_SENT, this._ordersTriggerListener);
 
   }
 
