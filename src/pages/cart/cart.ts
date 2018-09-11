@@ -51,7 +51,7 @@ export class CartPage extends CartBaseClass implements AfterViewChecked {
     readonly navParams: NavParams,
     injector: Injector) { 
       super(injector); 
-
+      
       const { mode= 'normal' } = <IHistoryModalTransferState>this.navParams.data;
       this.mode = mode;
       if (mode === 'modal') {

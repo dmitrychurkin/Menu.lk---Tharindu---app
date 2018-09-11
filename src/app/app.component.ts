@@ -23,7 +23,7 @@ export class MyApp {
       // Here you can do any higher level native things you might need.
       statusBar.backgroundColorByHexString('#488aff');
       splashScreen.hide();
-
+      
     });
 
     /*For Tharindu to add data to his DB

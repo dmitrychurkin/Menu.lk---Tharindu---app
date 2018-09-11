@@ -28,6 +28,7 @@ export class MessangingService {
     [`${OrderManagmentActionFlag.DELETE}_OrdersManagerService`]: ['Order "','" has been successfully deleted'],
 
 
+    emptyOrder_ShoppingCartService: ['Select atleast 1 item before add to cart'],
     tooManyOrders_ShoppingCartService: [`Per order allowed maximum ${MAX_CART_ITEMS} items, first buy this!`],
     [`${CART_ACTION_FLAGS.DELETE}Error_ShoppingCartService`]: ['Error occured while trying to remove from cart'],
     [`${CART_ACTION_FLAGS.ADD}Error_ShoppingCartService`]: ['Error occured while trying to add to cart'],

@@ -128,7 +128,7 @@
   <ion-grid [class.css-animator]="Service.TOTAL_ORDERS_IN_CART && STATE" class="ion-grid-btn js-token" #QuickOrder *ngIf="mode !== 'modal' && (!STATE || STATE === s.CANCEL)" [ngStyle]="{ position: buttonPosition, opacity: opacity }" fixed>
       <ion-row nowrap justify-content-center>
         <ion-col col-auto align-self-center>
-            <button [disabled]="QuickOrderPageRef.isQuickOrderSent" class="btn-quick-order" (tap)="onQuickOrderPage()" ion-button round icon-end>quick order<span>&nbsp;</span><ion-icon name="archive"></ion-icon></button>
+            <button [disabled]="QuickOrderPageRef.isQuickOrderSent || !shoppingCartService.CART_OBJECT_DB.TOTAL_ORDERS_IN_CART" class="btn-quick-order" (tap)="onQuickOrderPage()" ion-button round icon-end>quick order<span>&nbsp;</span><ion-icon name="archive"></ion-icon></button>
         </ion-col>
       </ion-row>
   </ion-grid>

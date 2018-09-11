@@ -20,7 +20,8 @@ export enum CART_ACTION_FLAGS { ADD, DELETE };
 export enum APP_EV { 
   CART_ACTION = 'cart:action => add | delete', 
   DELETE_CART_MODE = 'cart:deleteMode',
-  TABS_SIGN_IN_ANIMATION_DONE = 'tabs:animation => done'
+  TABS_SIGN_IN_ANIMATION_DONE = 'tabs:animation => done',
+  QUICK_ORDER_SENT = 'quick-order:sent'
 };
 export enum OrderManagmentActionFlag { CANCEL, RESTORE, DELETE, CLOSE_MODAL, VIEW };
 export enum DATABASE_TOKENS { SHOPPING_CART = 'ShoppingCart' };

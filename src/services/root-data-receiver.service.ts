@@ -59,10 +59,6 @@ export class RootDataReceiverService<T> {
           return pipe(
             tap(({ id }: QueryDocumentSnapshot<T>) => {
 
-              let isWasSuspended = resourceObject.isInfinityScrollSuspended;
-
-              resourceObject.isInfinityScrollSuspended = true;
-
               for (let i = 0; i < resourceObject.itemCollection.length; i++) {
 
                 if (resourceObject.itemCollection[i].id === id) {
@@ -71,7 +67,7 @@ export class RootDataReceiverService<T> {
 
                   if (resourceObject.itemCollection.length < batchSize) {
 
-                    resourceObject.subject$.next({ type: 'added', batchSize: 1, onQueryComplete: _ => { resourceObject.isInfinityScrollSuspended = isWasSuspended; typeof onQueryComplete === 'function' && onQueryComplete(resourceObject as any) } });
+                    resourceObject.subject$.next({ type: 'added', batchSize: 1, onQueryComplete: _ => { typeof onQueryComplete === 'function' && onQueryComplete(resourceObject as any) } });
                  
                   }
                   

@@ -117,7 +117,13 @@ export class ShoppingCartService {
       
       const { TOTAL_ORDERS_IN_CART, CART } = this.CART_OBJECT_DB;
 
-      if (!Order.menu.quantity || TOTAL_ORDERS_IN_CART + Order.menu.quantity > MAX_CART_ITEMS) {
+      if (!Order.menu.quantity ) {
+        
+        return this.toastMessageHandler( this._messService.getMessage(`emptyOrder_${ShoppingCartService.name}`) );
+      
+      }
+
+      if (TOTAL_ORDERS_IN_CART + Order.menu.quantity > MAX_CART_ITEMS) {
 
         return this.toastMessageHandler( this._messService.getMessage(`tooManyOrders_${ShoppingCartService.name}`) );
 

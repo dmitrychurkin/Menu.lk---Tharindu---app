@@ -1,12 +1,10 @@
-import { APP_QUICK_ORDER_PAGE, APP_CART_PAGE } from './../pages.constants';
 import { Component, Renderer2, Inject } from "@angular/core";
 import { NgForm } from "@angular/forms";
 import { AngularFirestore } from "angularfire2/firestore";
-import { IonicPage, NavController, TextInput, Platform } from "ionic-angular";
-import { asap } from "rxjs/Scheduler/asap";
+import { IonicPage, TextInput, Platform, NavController, Events } from "ionic-angular";
 import { IQuickOrder, FormUserTemplateData } from "../../interfaces";
 import { AuthService, ShoppingCartService, ToastMessangerService, NetworkService, MessangingService } from "../../services";
-import { ANGULAR_ANIMATION_OPACITY, CART_ACTION_FLAGS, OrderStatus, FIREBASE_DB_TOKENS, SOUND_MAPPER, FORM_USER_TEMPLATE_DATA } from "../pages.constants";
+import { ANGULAR_ANIMATION_OPACITY, CART_ACTION_FLAGS, OrderStatus, FIREBASE_DB_TOKENS, SOUND_MAPPER, FORM_USER_TEMPLATE_DATA, APP_EV } from "../pages.constants";
 
 const { ORDERS, ORDER_CONTENT } = FIREBASE_DB_TOKENS;
 
@@ -28,11 +26,12 @@ export class QuickOrder {
     private readonly _renderer2: Renderer2, 
     private readonly _af: AngularFirestore,
     private readonly _authService: AuthService,
-    private readonly _navCtrl: NavController,
     private readonly _networkService: NetworkService,
     private readonly _toastMessService: ToastMessangerService,
     private readonly _messService: MessangingService,
     private readonly _platform: Platform,
+    private readonly _events: Events,
+    private readonly _navCtrl: NavController,
     private readonly _shoppingCartService: ShoppingCartService) {}
 
 
@@ -71,8 +70,7 @@ export class QuickOrder {
 
     if (invalid || QuickOrder.isQuickOrderSent || !this._networkService.checkNetwork()) return;
 
-    QuickOrder.isQuickOrderSent = true;
-
+    this._events.publish(APP_EV.QUICK_ORDER_SENT, QuickOrder.isQuickOrderSent = true);
     const { isAnonymous, uid } = this._authService.userInstance;
     const { CURRENCY, TOTAL_COST } = this._shoppingCartService.CART_OBJECT_DB;
 
@@ -107,37 +105,28 @@ export class QuickOrder {
                           closeButtonText: 'Ok'
                         };
 
-                        return err ? 
+                        return (err ? 
                                 this._toastMessService.showToast({ ...toastOptions, message: this._messService.getMessage( this._platform.is('cordova') ? 'appError' : (err && err.message) ) })
-                                                          .then(() => { QuickOrder.isQuickOrderSent = false; })
-                                  :
+                              :
                                 this._shoppingCartService.completer({ 
                                   actionFlag: CART_ACTION_FLAGS.DELETE,
                                   message: toastOptions,
                                   soundPath: SOUND_MAPPER.SEND_ORDER
                                 }).then(() => {
 
-                                  asap.schedule(() => {
+                                  
+                                  const cb = () => this._events.publish(APP_EV.QUICK_ORDER_SENT, false);
 
-                                    const searchViews = [APP_QUICK_ORDER_PAGE, APP_CART_PAGE];
-                                    const viewsArr = this._navCtrl.getViews();
+                                  if (this._navCtrl.canGoBack()) {
                                     
-                                    let viewIndex = viewsArr.length - 1;
+                                    return this._navCtrl.popToRoot().then(cb);
+                                  
+                                  }
 
-                                    do {
-
-                                      const foundIndex = searchViews.indexOf( viewsArr[viewIndex].name );
-                                      if (this._navCtrl.canGoBack() && ~foundIndex) {
-
-                                        viewsArr[viewIndex].dismiss();
-
-                                      }
-
-                                    }while(viewIndex--);
-
-                                  }, 1000);
+                                  cb();
                               
-                                });
+                                }))
+                                .then(() => { QuickOrder.isQuickOrderSent = false });
 
                       });
     

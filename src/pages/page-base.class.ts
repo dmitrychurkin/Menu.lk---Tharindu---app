@@ -28,18 +28,15 @@ export class PageBaseClass<S extends SegmentOptions<string>, T> {
     
     this._pageConfig = config || this.CONFIG;
 
-    let maybeSegmentDisabled: boolean;
-
     this.networkService.onDisconnect$.subscribe(() => {
 
-      maybeSegmentDisabled = this.isSegmentDisabled;
       this.isSegmentDisabled = true;
       this._setLoadingProps();
 
     });
     this.networkService.onConnect$.subscribe(() => {
 
-      this.isSegmentDisabled = maybeSegmentDisabled;
+      this.isSegmentDisabled = false;
       this._setLoadingProps();
 
     });
@@ -148,17 +145,17 @@ export class PageBaseClass<S extends SegmentOptions<string>, T> {
     let segmentActived = true;
     this.dataStore.scrollPosition = this.content.scrollTop;
     this.currentSegmentValue = segment.value as S;
-    const maybeSegmentDisabled = this.isSegmentDisabled;
+
     const scrollerFn = () => {
 
       if (!segmentActived) return;
       if (!this.dataStore.scrollPosition) {
 
-        this.isSegmentDisabled = maybeSegmentDisabled;
+        this.isSegmentDisabled = false;
 
       }
 
-      this.content.scrollTo(0, this.dataStore.scrollPosition, 300).then(() => asap.schedule(() => this.isSegmentDisabled = maybeSegmentDisabled, 100));
+      this.content.scrollTo(0, this.dataStore.scrollPosition, 300).then(() => asap.schedule(() => this.isSegmentDisabled = false/*maybeSegmentDisabled*/, 100));
 
       segmentActived = false;
 
@@ -202,11 +199,11 @@ export class PageBaseClass<S extends SegmentOptions<string>, T> {
       return infinityScroll.complete();
 
     }
-    const maybeSegmentDisabled = this.isSegmentDisabled;
+    
     this.isSegmentDisabled = true;
 
     asap.schedule(() => this.dataStore.subject$.next({
-      onQueryComplete: this.actionFetchDone(() => this.isSegmentDisabled = maybeSegmentDisabled, infinityScroll, false)
+      onQueryComplete: this.actionFetchDone(() => this.isSegmentDisabled = false, infinityScroll, false)
     }), this._pageConfig.mode === 'list' ? 1000 : 0);
 
   }

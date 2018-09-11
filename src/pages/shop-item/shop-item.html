@@ -29,12 +29,12 @@
         <div class="btn-group">
           <div class="btn-wrapper">
             <button 
-              [disabled]="!requestFromCartPage && (availabilityService.checkAvailability(restaurantLink.workingTime).isClosed || shoppingCartService.CART_OBJECT_DB.TOTAL_ORDERS_IN_CART == MAX_LIMIT)" 
+              [disabled]="isOrderSent || !requestFromCartPage && (availabilityService.checkAvailability(restaurantLink.workingTime).isClosed || shoppingCartService.CART_OBJECT_DB.TOTAL_ORDERS_IN_CART == MAX_LIMIT)" 
               ion-button 
               (tap)="onDec()">-</button>
             <p class="btn-group-counter">{{ !requestFromCartPage && availabilityService.checkAvailability(restaurantLink.workingTime).isClosed ? 0 : unitEntity.quantity }}</p>
             <button 
-              [disabled]="!requestFromCartPage && (availabilityService.checkAvailability(restaurantLink.workingTime).isClosed || shoppingCartService.CART_OBJECT_DB.TOTAL_ORDERS_IN_CART == MAX_LIMIT)" 
+              [disabled]="isOrderSent || !requestFromCartPage && (availabilityService.checkAvailability(restaurantLink.workingTime).isClosed || shoppingCartService.CART_OBJECT_DB.TOTAL_ORDERS_IN_CART == MAX_LIMIT)" 
               ion-button 
               (tap)="onInc()">+</button>
           </div>
@@ -42,7 +42,7 @@
 
         <div class="add-to-cart">
           <button 
-            [disabled]="!requestFromCartPage && (availabilityService.checkAvailability(restaurantLink.workingTime).isClosed || shoppingCartService.CART_OBJECT_DB.TOTAL_ORDERS_IN_CART == MAX_LIMIT)" 
+            [disabled]="isOrderSent || !requestFromCartPage && (availabilityService.checkAvailability(restaurantLink.workingTime).isClosed || shoppingCartService.CART_OBJECT_DB.TOTAL_ORDERS_IN_CART == MAX_LIMIT)" 
             (tap)="onAction()" 
             ion-button 
             [color]="requestFromCartPage ? 'danger' : 'secondary'" 

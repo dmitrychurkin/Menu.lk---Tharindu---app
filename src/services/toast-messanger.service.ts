@@ -17,9 +17,12 @@ export class ToastMessangerService {
 
   showToast(config?: ToastOptions) {
 
-    const offset = this._notificationPool.indexOf(config.message);
 
-    if (!config.message || offset >= 0) return Promise.resolve();
+    if (!config.message || this._notificationPool.includes(config.message)) {
+
+      return Promise.resolve();
+
+    }
   
     this._notificationPool.push(config.message);
 

@@ -1,6 +1,6 @@
 import { Component } from "@angular/core";
-import { IonicPage, NavParams, NavController } from "ionic-angular";
-import { IMG_DATA_FIELD_TOKEN, ANGULAR_ANIMATION_OPACITY, APP_CART_PAGE, MAX_CART_ITEMS } from "../pages.constants";
+import { IonicPage, NavParams, NavController, Events } from "ionic-angular";
+import { IMG_DATA_FIELD_TOKEN, ANGULAR_ANIMATION_OPACITY, APP_CART_PAGE, MAX_CART_ITEMS, APP_EV } from "../pages.constants";
 import { ShoppingCartService, MessangingService, ToastMessangerService, AvailabilityService } from "../../services";
 import { IOrder, IMenuItem, IRestaurants } from "../../interfaces";
 
@@ -28,8 +28,19 @@ export class ShopItemPage extends ItemPageCache {
 
   requestFromCartPage: boolean;
   Order: IOrder | IMenuItem;
-  //backgroundImage: string;
+  
+  private readonly _eventListener = (result: boolean) => {
 
+    this.isOrderSent = result;
+
+    if (!this.unitEntity.quantity && !this.isOrderSent) {
+
+      this.unitEntity.quantity = 1;
+
+    }
+
+  };
+  isOrderSent: boolean;
   private _isActionBtnClicked: boolean;
   private _isUnitSaved: boolean;
 
@@ -38,10 +49,13 @@ export class ShopItemPage extends ItemPageCache {
     private readonly _toastService: ToastMessangerService,
     private readonly _messService: MessangingService,
     private readonly _navParams: NavParams,
-    readonly availabilityService: AvailabilityService,
-    readonly shoppingCartService: ShoppingCartService) {
+    private readonly _events: Events,
+            readonly availabilityService: AvailabilityService,
+            readonly shoppingCartService: ShoppingCartService) {
 
     super();
+
+    _events.subscribe(APP_EV.QUICK_ORDER_SENT, this._eventListener);
 
     this.requestFromCartPage = this._navCtrl.getViews().slice(-1)[0].name === APP_CART_PAGE;
 
@@ -175,6 +189,12 @@ export class ShopItemPage extends ItemPageCache {
 
     delete this._isUnitSaved;
     this.unitCount = 0;
+
+  }
+
+  ionViewWillUnload() {
+
+    this._events.unsubscribe(APP_EV.QUICK_ORDER_SENT, this._eventListener);
 
   }
 
